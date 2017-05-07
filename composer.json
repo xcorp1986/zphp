@@ -27,5 +27,8 @@
     "ext-apc": "*",
     "ext-xcache": "*",
     "ext-yac": "*"
+  },
+  "support": {
+    "docs": "http://gitbook.jeekzx.com/"
   }
 }
