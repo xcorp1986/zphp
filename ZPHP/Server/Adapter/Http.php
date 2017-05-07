@@ -6,9 +6,10 @@
 
 
 namespace ZPHP\Server\Adapter;
-use ZPHP\Core,
-    ZPHP\Server\IServer,
-    ZPHP\Protocol;
+
+use ZPHP\Core;
+use ZPHP\Protocol;
+use ZPHP\Server\IServer;
 
 class Http implements IServer
 {
@@ -21,6 +22,7 @@ class Http implements IServer
             )
         );
         Protocol\Request::parse($_REQUEST);
+
         return Core\Route::route();
     }
 

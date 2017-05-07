@@ -6,6 +6,7 @@
 
 
 namespace ZPHP\Cache\Adapter;
+
 use ZPHP\Cache\ICache;
 
 class Yac implements ICache
@@ -35,6 +36,7 @@ class Yac implements ICache
         if (!empty($data)) {
             throw new \Exception("{$key} exitst");
         }
+
         return $this->yac->set($key, $value, $timeOut);
     }
 
@@ -62,6 +64,7 @@ class Yac implements ICache
         if (!\is_numeric($data)) {
             throw new \Exception("value no numeric");
         }
+
         return $this->yac->set($key, ($data + $step));
     }
 
@@ -71,6 +74,7 @@ class Yac implements ICache
         if (!\is_numeric($data)) {
             throw new \Exception("value no numeric");
         }
+
         return $this->yac->set($key, ($data - $step));
     }
 

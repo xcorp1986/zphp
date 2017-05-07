@@ -11,7 +11,8 @@ namespace ZPHP\Core;
 
 use ZPHP\Controller\WSController;
 
-class WSRequest extends Request{
+class WSRequest extends Request
+{
     protected $server;
     protected $frame;
     protected $socketData;
@@ -21,7 +22,8 @@ class WSRequest extends Request{
      * @param $request
      * @param $response
      */
-    public function init($server, $frame){
+    public function init($server, $frame)
+    {
         $this->server = $server;
         $this->frame = $frame;
         $this->socketData = json_decode($frame->data, true);
@@ -33,32 +35,34 @@ class WSRequest extends Request{
      * @return mixed
      * @throws \Exception
      */
-    public function parse(){
+    public function parse()
+    {
         $dataTmp = $this->socketData;
-        if(empty($dataTmp)){
+        if (empty($dataTmp)) {
             throw new \Exception("数据非法");
         }
-        $parseConfig = Config::getField('websocket','parse');
-        if(empty($parseConfig)){
+        $parseConfig = Config::getField('websocket', 'parse');
+        if (empty($parseConfig)) {
             $parseConfig = [
-                'module'=>'WebSocket',
+                'module'     => 'WebSocket',
                 'controller' => 'Index',
-                'action' => 'index',
-                'field' => [
-                    'data' => 'd',
+                'action'     => 'index',
+                'field'      => [
+                    'data'  => 'd',
                     'route' => 'm',
-                ]
+                ],
             ];
         }
-        if(empty($parseConfig['route'][$dataTmp[$parseConfig['field']['route']]])){
+        if (empty($parseConfig['route'][$dataTmp[$parseConfig['field']['route']]])) {
             throw new \Exception("数据有误");
         }
         $mvc['module'] = $parseConfig['module'];
         $routeUrl = $parseConfig['route'][$dataTmp[$parseConfig['field']['route']]];
         $routeParse = explode('/', $routeUrl);
-        $mvc['controller'] = !empty($routeParse[0])?$routeParse[0]:$parseConfig['controller'];
-        $mvc['action'] = !empty($routeParse[1])?$routeParse[1]:$parseConfig['action'];
-        return ['mvc'=>$mvc];
+        $mvc['controller'] = !empty($routeParse[0]) ? $routeParse[0] : $parseConfig['controller'];
+        $mvc['action'] = !empty($routeParse[1]) ? $routeParse[1] : $parseConfig['action'];
+
+        return ['mvc' => $mvc];
     }
 
     /**
@@ -67,28 +71,30 @@ class WSRequest extends Request{
      * @return mixed|string
      * @throws \Exception
      */
-    public function defaultDistribute($mvc){
+    public function defaultDistribute($mvc)
+    {
         $controllerClass = $mvc['module'].'\\'.$mvc['controller'];
-        if(!empty(Config::getField('project','reload')) && extension_loaded('runkit')){
+        if (!empty(Config::getField('project', 'reload')) && extension_loaded('runkit')) {
             App::clear($controllerClass, 'controller');
         }
         try {
             $FController = App::controller($controllerClass);
-        }catch(\Exception $e) {
+        } catch (\Exception $e) {
             throw new \Exception($e->getMessage());
         }
         $controller = clone $FController;
         $action = $mvc['action'];
-        if(!method_exists($controller, $action)){
+        if (!method_exists($controller, $action)) {
             throw new \Exception(404);
         }
         /**
          * @var WSController $controller
          */
-        $controller->coroutineMethod = function()use($controller, $action){
+        $controller->coroutineMethod = function () use ($controller, $action) {
             return call_user_func([$controller, $action]);
         };
         $controller->setSocket($this->server, $this->frame->fd, $this->socketData);
+
         return $this->executeGeneratorScheduler($controller);
     }
 }

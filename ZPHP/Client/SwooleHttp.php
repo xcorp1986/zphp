@@ -9,13 +9,12 @@
 namespace ZPHP\Client;
 
 use ZPHP\Core\App;
+use ZPHP\Core\Config;
 use ZPHP\Core\Container;
 use ZPHP\Core\Db;
 use ZPHP\Core\DI;
 use ZPHP\Core\Dispatcher;
 use ZPHP\Core\Factory;
-use ZPHP\Core\Config;
-use ZPHP\Core\Log;
 use ZPHP\Core\Request;
 use ZPHP\Core\Route;
 use ZPHP\Core\Swoole;
@@ -37,25 +36,26 @@ class SwooleHttp extends ZSwooleHttp
     protected $coroutineTask;
 
     /**
-     * @var Request $requestDeal;
+     * @var Request $requestDeal ;
      */
     protected $requestDeal;
 
     protected $taskObjectArray;
+
     public function onRequest($request, $response)
     {
         try {
-            if(strpos($request->server['path_info'],'.')!==false){
+            if (strpos($request->server['path_info'], '.') !== false) {
                 throw new \Exception(403);
             }
             $requestDeal = clone $this->requestDeal;
             $requestDeal->init($request, $response);
             $httpResult = $this->dispatcher->distribute($requestDeal);
-            if($httpResult!=='NULL') {
-                if(!is_string($httpResult)){
-                    if(strval(Config::getField('project','type'))=='api'){
+            if ($httpResult !== 'NULL') {
+                if (!is_string($httpResult)) {
+                    if (strval(Config::getField('project', 'type')) == 'api') {
                         $httpResult = json_encode($httpResult);
-                    }else{
+                    } else {
                         $httpResult = strval($httpResult);
                     }
                 }
@@ -63,20 +63,19 @@ class SwooleHttp extends ZSwooleHttp
                 $response->end($httpResult);
             }
         } catch (\Exception $e) {
-            $message = explode('|',$e->getMessage());
+            $message = explode('|', $e->getMessage());
             $code = intval($message[0]);
-            if($code==0){
+            if ($code == 0) {
                 $response->status(500);
                 $httpResult = Swoole::info($e->getMessage());
-            }else {
+            } else {
                 $response->status($code);
-                $otherMessage = !empty($message[1])?' '.$message[1]:'';
+                $otherMessage = !empty($message[1]) ? ' '.$message[1] : '';
                 $httpResult = Swoole::info(Response::$HTTP_HEADERS[$code].$otherMessage);
             }
             $response->end($httpResult);
         }
     }
-
 
 
     /**
@@ -88,7 +87,7 @@ class SwooleHttp extends ZSwooleHttp
     {
         parent::onWorkerStart($server, $workerId);
         $common = Config::get('common_file');
-        if(!empty($common)){
+        if (!empty($common)) {
             require ROOTPATH.$common;
         }
 
@@ -110,8 +109,9 @@ class SwooleHttp extends ZSwooleHttp
      * @param $server
      * @param $workerId
      */
-    public function onWorkerStop($server, $workerId){
-        if(!$server->taskworker) {
+    public function onWorkerStop($server, $workerId)
+    {
+        if (!$server->taskworker) {
             Db::getInstance()->freeMysqlPool();
             Db::getInstance()->freeRedisPool();
         }
@@ -127,28 +127,29 @@ class SwooleHttp extends ZSwooleHttp
 
     public function onTask($server, $taskId, $fromId, $data)
     {
-        try{
+        try {
             $checkParam = ['class', 'method'];
-            foreach($checkParam as $p){
-                if(empty($data[$p])){
+            foreach ($checkParam as $p) {
+                if (empty($data[$p])) {
                     throw new \Exception($p." can't be empty!");
                 }
             }
-            if(empty($this->taskObjectArray[$data['class']])){
-                $classParam = !empty($data['class_param'])?$data['class_param']:null;
-                $data['class'] = str_replace('/','\\', $data['class']);
-                $this->taskObjectArray[$data['class']] = Factory::getInstance($data['class'],$classParam);
+            if (empty($this->taskObjectArray[$data['class']])) {
+                $classParam = !empty($data['class_param']) ? $data['class_param'] : null;
+                $data['class'] = str_replace('/', '\\', $data['class']);
+                $this->taskObjectArray[$data['class']] = Factory::getInstance($data['class'], $classParam);
                 $taskObject = $this->taskObjectArray[$data['class']];
-                if(method_exists($taskObject, 'init')){
+                if (method_exists($taskObject, 'init')) {
                     call_user_func([$taskObject, 'init']);
                 }
-            }else{
+            } else {
                 $taskObject = $this->taskObjectArray[$data['class']];
             }
             $res = call_user_func_array([$taskObject, $data['method']], $data['param']);
-            return ['result'=>$res];
-        }catch(\Exception $e){
-            return ['exception'=>$e->getMessage()];
+
+            return ['result' => $res];
+        } catch (\Exception $e) {
+            return ['exception' => $e->getMessage()];
         }
     }
 

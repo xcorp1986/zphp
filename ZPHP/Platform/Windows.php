@@ -1,4 +1,5 @@
 <?php
+
 namespace ZPHP\Platform;
 
 class Windows

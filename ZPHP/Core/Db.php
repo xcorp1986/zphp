@@ -11,16 +11,17 @@ namespace ZPHP\Core;
 
 use ZPHP\Coroutine\Memcached\MemcachedAsynPool;
 use ZPHP\Coroutine\Mongo\MongoAsynPool;
+use ZPHP\Coroutine\Mysql\MysqlAsynPool;
 use ZPHP\Coroutine\Redis\RedisAsynPool;
 use ZPHP\Coroutine\Task\TaskAsynPool;
 use ZPHP\Memcached\Memcached;
 use ZPHP\Model\Model;
-use ZPHP\Coroutine\Mysql\MysqlAsynPool;
 use ZPHP\Mongo\Mongo;
 use ZPHP\Redis\Redis;
 use ZPHP\Task\Task;
 
-class Db {
+class Db
+{
     /**
      * @var MysqlAsynPool
      */
@@ -51,7 +52,7 @@ class Db {
     public $taskPool;
 
     private static $server;
-    private static $instance=null;
+    private static $instance = null;
     private static $db;
     private static $_tables;
     private static $_redis;
@@ -64,27 +65,32 @@ class Db {
     private static $workId;
     private static $_swooleModule;
 
-    private function __construct(){
+    private function __construct()
+    {
     }
 
     /**
      * @return Db
      */
-    public static function getInstance(){
-        if(empty(self::$instance)){
+    public static function getInstance()
+    {
+        if (empty(self::$instance)) {
             self::$instance = new Db();
         }
+
         return self::$instance;
     }
 
-    public static function getServer(){
+    public static function getServer()
+    {
         return self::$server;
     }
 
     /**
      * @return workId
      */
-    public static function getWorkId(){
+    public static function getWorkId()
+    {
         return self::$workId;
     }
 
@@ -95,7 +101,8 @@ class Db {
      * @param $workerId
      * @throws \Exception
      */
-    static public function init($server, $workerId){
+    public static function init($server, $workerId)
+    {
         self::getInstance();
         self::$server = $server;
         self::initMysqlPool($workerId, Config::get('mysql'));
@@ -103,7 +110,7 @@ class Db {
         self::initMongoPool($workerId, self::$server, Config::get('mongo'));
         self::initSessionRedisPool($workerId, Config::get('session'));
         self::initMemcachedPool($workerId, self::$server, Config::get('memcached'));
-        $taskConfig = ['asyn_max_count'=>Config::getField('socket', 'single_task_worker_num')];
+        $taskConfig = ['asyn_max_count' => Config::getField('socket', 'single_task_worker_num')];
         self::initTaskPool($workerId, self::$server, $taskConfig);
         self::initSwooleModule(Config::get('swoole_module'));
     }
@@ -111,8 +118,9 @@ class Db {
     /**
      * @param $config
      */
-    public static function initSwooleModule($config){
-        if(!empty($config)) {
+    public static function initSwooleModule($config)
+    {
+        if (!empty($config)) {
             foreach ($config as $key => $value) {
                 self::$_swooleModule[$key] = \swoole_load_module($value);
             }
@@ -123,7 +131,8 @@ class Db {
      * @param $name
      * @return mixed
      */
-    public static function getSwooleModule($name){
+    public static function getSwooleModule($name)
+    {
         return self::$_swooleModule[$name];
     }
 
@@ -132,8 +141,9 @@ class Db {
      * @param $workId
      * 初始化mysql连接池
      */
-    public static function initMysqlPool($workId, $config){
-        if(!empty($config)) {
+    public static function initMysqlPool($workId, $config)
+    {
+        if (!empty($config)) {
             if (empty(self::$instance->mysqlPool)) {
                 self::$workId = $workId;
                 self::$instance->mysqlPool = new MysqlAsynPool();
@@ -145,8 +155,9 @@ class Db {
     /**
      * @param $workId
      */
-    public static function initRedisPool($workId, $config){
-        if(!empty($config)) {
+    public static function initRedisPool($workId, $config)
+    {
+        if (!empty($config)) {
             if (empty(self::$instance->redisPool)) {
                 self::$instance->redisPool = new RedisAsynPool();
                 self::$instance->redisPool->initWorker($workId, $config);
@@ -160,8 +171,9 @@ class Db {
      * @param $workId
      * @throws \Exception
      */
-    public static function initSessionRedisPool($workId, $config){
-        if($config['enable'] && strtolower($config['adapter'])=='redis') {
+    public static function initSessionRedisPool($workId, $config)
+    {
+        if ($config['enable'] && strtolower($config['adapter']) == 'redis') {
             if (empty(self::$instance->sessionRedisPool)) {
                 self::$instance->sessionRedisPool = new RedisAsynPool();
                 $sRedisConf = $config['redis'];
@@ -175,8 +187,9 @@ class Db {
      * init mongoPool
      * @param $workId
      */
-    public static function initMongoPool($workId, $server, $config){
-        if(empty(self::$instance->mongoPool)){
+    public static function initMongoPool($workId, $server, $config)
+    {
+        if (empty(self::$instance->mongoPool)) {
             self::$instance->mongoPool = new MongoAsynPool();
             self::$instance->mongoPool->initTaskWorker($workId, $server, $config);
         }
@@ -188,8 +201,9 @@ class Db {
      * @param $server
      * @param $config
      */
-    public static function initMemcachedPool($workId, $server, $config){
-        if(empty(self::$instance->memcachedPool)){
+    public static function initMemcachedPool($workId, $server, $config)
+    {
+        if (empty(self::$instance->memcachedPool)) {
             self::$instance->memcachedPool = new MemcachedAsynPool();
             self::$instance->memcachedPool->initTaskWorker($workId, $server, $config);
         }
@@ -201,8 +215,9 @@ class Db {
      * @param $server
      * @param $config
      */
-    public static function initTaskPool($workId, $server, $config){
-        if(empty(self::$instance->taskPool)){
+    public static function initTaskPool($workId, $server, $config)
+    {
+        if (empty(self::$instance->taskPool)) {
             self::$instance->taskPool = new TaskAsynPool();
             self::$instance->taskPool->initTaskWorker($workId, $server, $config);
         }
@@ -214,10 +229,12 @@ class Db {
      * @param string $db_key
      * @return Model
      */
-    public static function table($tableName=''){
-        if(!isset(self::$_tables[$tableName])){
+    public static function table($tableName = '')
+    {
+        if (!isset(self::$_tables[$tableName])) {
             self::$_tables[$tableName] = new Model($tableName, self::$instance->mysqlPool);
         }
+
         return self::$_tables[$tableName];
     }
 
@@ -226,37 +243,44 @@ class Db {
      * @param $collection
      * @return Mongo
      */
-    public static function collection($collection=''){
-        if(!isset(self::$_mongo[$collection])){
-            self::$_mongo[$collection] = new Mongo($collection,self::$instance->mongoPool);
+    public static function collection($collection = '')
+    {
+        if (!isset(self::$_mongo[$collection])) {
+            self::$_mongo[$collection] = new Mongo($collection, self::$instance->mongoPool);
         }
+
         return self::$_mongo[$collection];
     }
-
 
 
     /**
      * @return Redis
      */
-    public static function redis(){
-        if(!isset(self::$_redis)){
+    public static function redis()
+    {
+        if (!isset(self::$_redis)) {
             self::$_redis = new Redis(self::$instance->redisPool);
         }
+
         return self::$_redis;
     }
 
 
-    public static function memcached(){
-        if(!isset(self::$_memcached)){
+    public static function memcached()
+    {
+        if (!isset(self::$_memcached)) {
             self::$_memcached = new Memcached(self::$instance->memcachedPool);
         }
+
         return self::$_memcached;
     }
 
-    public static function task(){
-        if(!isset(self::$_task)){
+    public static function task()
+    {
+        if (!isset(self::$_task)) {
             self::$_task = new Task(self::$instance->taskPool);
         }
+
         return self::$_task;
     }
 
@@ -264,10 +288,12 @@ class Db {
      * 用于session的redis连接池
      * @return Redis
      */
-    public static function sessionRedis(){
-        if(!isset(self::$_sessionRedis)){
+    public static function sessionRedis()
+    {
+        if (!isset(self::$_sessionRedis)) {
             self::$_sessionRedis = new Redis(self::$instance->sessionRedisPool);
         }
+
         return self::$_sessionRedis;
     }
 
@@ -275,8 +301,9 @@ class Db {
     /**
      * 释放mysql连接池
      */
-    public static function freeMysqlPool(){
-        if(isset(self::$instance->mysqlPool)) {
+    public static function freeMysqlPool()
+    {
+        if (isset(self::$instance->mysqlPool)) {
             self::$instance->mysqlPool->free();
             unset(self::$instance->mysqlPool);
         }
@@ -285,12 +312,13 @@ class Db {
     /**
      * free redis pool
      */
-    public static function freeRedisPool(){
-        if(isset(self::$instance->redisPool)) {
+    public static function freeRedisPool()
+    {
+        if (isset(self::$instance->redisPool)) {
             self::$instance->redisPool->free();
             unset(self::$instance->redisPool);
         }
-        if(isset(self::$instance->sessionRedisPool)) {
+        if (isset(self::$instance->sessionRedisPool)) {
             self::$instance->sessionRedisPool->free();
             unset(self::$instance->sessionRedisPool);
         }
@@ -302,35 +330,39 @@ class Db {
      * @return mixed
      * @throws \Exception
      */
-    public function getDb($db_key= 'master'){
-        if(!isset(self::$db[$db_key])){
+    public function getDb($db_key = 'master')
+    {
+        if (!isset(self::$db[$db_key])) {
             $config = Config::getField('db', $db_key);
-            if($config['type']=='pdo'){
-                if(empty($config['persistent'])) {
+            if ($config['type'] == 'pdo') {
+                if (empty($config['persistent'])) {
                     self::$db[$db_key] = new \PDO($config['dsn'], $config['user'], $config['password']);
-                }else{
-                    self::$db[$db_key] = new \PDO($config['dsn'], $config['user'], $config['password'],
-                        array(\PDO::ATTR_PERSISTENT => true));
+                } else {
+                    self::$db[$db_key] = new \PDO(
+                        $config['dsn'], $config['user'], $config['password'],
+                        [\PDO::ATTR_PERSISTENT => true]
+                    );
                 }
-                if(!empty($config['charset'])){
-                    self::$db[$db_key]->query('set names ' . $config['charset']);
+                if (!empty($config['charset'])) {
+                    self::$db[$db_key]->query('set names '.$config['charset']);
                 }
                 self::$db[$db_key]->setAttribute(\PDO::ATTR_DEFAULT_FETCH_MODE, \PDO::FETCH_ASSOC);
 
             }
         }
+
         return self::$db[$db_key];
     }
 
-    public static function setSql($sql){
+    public static function setSql($sql)
+    {
         self::$lastSql = $sql;
     }
 
-    public static function getLastSql(){
+    public static function getLastSql()
+    {
         return self::$lastSql;
     }
-
-
 
 
 }

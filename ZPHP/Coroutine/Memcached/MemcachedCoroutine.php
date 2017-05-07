@@ -9,7 +9,6 @@
 namespace ZPHP\Coroutine\Memcached;
 
 use ZPHP\Coroutine\Base\CoroutineBase;
-use ZPHP\Coroutine\Memcached\MemcachedAsynPool;
 
 class MemcachedCoroutine extends CoroutineBase
 {

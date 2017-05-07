@@ -11,35 +11,45 @@ namespace ZPHP\Core;
 
 use ZPHP\ZPHP;
 
-abstract class Log {
-    const TRACE   = 0;
-    const INFO    = 1;
-    const NOTICE  = 2;
-    const WARN    = 3;
-    const ERROR   = 4;
-    private static $log=[];
-    private static $syslog=[];
+abstract class Log
+{
+    const TRACE = 0;
+    const INFO = 1;
+    const NOTICE = 2;
+    const WARN = 3;
+    const ERROR = 4;
+    private static $log = [];
+    private static $syslog = [];
 
-    protected static $level_str = array(
+    protected static $level_str = [
         'TRACE',
         'INFO',
         'NOTICE',
         'WARN',
         'ERROR',
-    );
+    ];
 
-
-    //写日志
-    static public function write($msg, $level=self::ERROR, $system=false){
+    /**
+     * 写日志
+     * @param $msg
+     * @param int $level
+     * @param bool $system
+     */
+    public static function write($msg, $level = self::ERROR, $system = false)
+    {
         $level_str = self::$level_str[$level];
         $timeArray = explode(' ', microtime());
-        $message = date('Y-m-d H:i:s').substr($timeArray[0],1)." {$level_str}-".$msg."\n";
-        if($system){
+        $message = date('Y-m-d H:i:s').substr($timeArray[0], 1)." {$level_str}-".$msg."\n";
+        if ($system) {
             self::$syslog[] = $message;
-            if(DEBUG!==true && count(self::$syslog)<1000)return;
-        }else {
+            if (DEBUG !== true && count(self::$syslog) < 1000) {
+                return;
+            }
+        } else {
             self::$log[] = $message;
-            if(DEBUG!==true && count(self::$log)<1000)return;
+            if (DEBUG !== true && count(self::$log) < 1000) {
+                return;
+            }
         }
         self::reallyWrite($system);
     }
@@ -47,17 +57,18 @@ abstract class Log {
     /**
      * 实际写日志
      */
-    static protected function reallyWrite($type=false){
-        if($type===false){
+    protected static function reallyWrite($type = false)
+    {
+        if ($type === false) {
             $str = implode("", self::$log);
             $filePath = ZPHP::getLogPath().DS.'app';
-            if(!is_dir($filePath)){
+            if (!is_dir($filePath)) {
                 mkdir($filePath, 0755, true);
             }
             $fileName = $filePath.'/'.date('Y-m-d').'.log';
             error_log($str, 3, $fileName);
             self::$log = [];
-        }else{
+        } else {
             $str = implode("", self::$syslog);
             $fileName = ZPHP::getSystemLog();
             error_log($str, 3, $fileName);
@@ -68,11 +79,12 @@ abstract class Log {
     /**
      * 写完日志(一般用在workstop)
      */
-    static public function clear(){
-        if(!empty(self::$log)){
+    public static function clear()
+    {
+        if (!empty(self::$log)) {
             self::reallyWrite();
         }
-        if(!empty(self::$syslog)){
+        if (!empty(self::$syslog)) {
             self::reallyWrite(true);
         }
     }

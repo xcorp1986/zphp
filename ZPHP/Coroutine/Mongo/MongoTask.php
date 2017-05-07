@@ -8,24 +8,27 @@
 
 namespace ZPHP\Coroutine\Mongo;
 
-use ZPHP\Core\Log;
-
-class MongoTask{
+class MongoTask
+{
 
     public $taskId;
     protected $manager;
     protected $config;
-    function __construct($param=[])
+
+    function __construct($param = [])
     {
         $this->taskId = $param['taskId'];
         $this->config = $param['config'];
 
     }
 
-    protected function checkManager(){
-        if(empty($this->manager)) {
-            $this->manager = new \MongoDB\Driver\Manager("mongodb://" . $this->config['host']
-                . ":" . $this->config['port']);
+    protected function checkManager()
+    {
+        if (empty($this->manager)) {
+            $this->manager = new \MongoDB\Driver\Manager(
+                "mongodb://".$this->config['host']
+                .":".$this->config['port']
+            );
         }
     }
 
@@ -36,9 +39,10 @@ class MongoTask{
      * @param array $options
      * @return array
      */
-    public function get($collection, $filter,$options=[]){
+    public function get($collection, $filter, $options = [])
+    {
         $this->checkManager();
-        if(!empty($filter['_id'])){
+        if (!empty($filter['_id'])) {
             $filter['_id'] = new \MongoDB\BSON\ObjectId($filter['_id']);
         }
         // 查询数据
@@ -50,6 +54,7 @@ class MongoTask{
             $document['_id'] = (string)$document['_id'];
             $result[] = $document;
         }
+
         return $result;
     }
 
@@ -59,15 +64,17 @@ class MongoTask{
      * @param $data
      * @return string
      */
-    public function insert($collection, $data){
+    public function insert($collection, $data)
+    {
         $this->checkManager();
         $bulk = new \MongoDB\Driver\BulkWrite;
         $_id = $bulk->insert($data);
         $writeConcern = new \MongoDB\Driver\WriteConcern(\MongoDB\Driver\WriteConcern::MAJORITY, 1000);
         $result = $this->manager->executeBulkWrite($this->config['database'].'.'.$collection, $bulk, $writeConcern);
-        if($result){
+        if ($result) {
             $result = (string)$_id;
         }
+
         return $result;
     }
 
@@ -80,7 +87,8 @@ class MongoTask{
      * @param bool $upsert
      * @return mixed
      */
-    public function update($collection, $filter, $update, $upsert=false){
+    public function update($collection, $filter, $update, $upsert = false)
+    {
         $this->checkManager();
         $bulk = new \MongoDB\Driver\BulkWrite;
         $bulk->update(
@@ -91,13 +99,14 @@ class MongoTask{
 
         $writeConcern = new \MongoDB\Driver\WriteConcern(\MongoDB\Driver\WriteConcern::MAJORITY, 1000);
         $result = $this->manager->executeBulkWrite($this->config['database'].'.'.$collection, $bulk, $writeConcern);
-        if($result){
-            if($upsert){
+        if ($result) {
+            if ($upsert) {
                 $result = $result->getUpsertedCount();
-            }else {
+            } else {
                 $result = $result->getModifiedCount();
             }
         }
+
         return $result;
     }
 
@@ -109,16 +118,18 @@ class MongoTask{
      * @param int $limit
      * @return mixed
      */
-    public function delete($collection, $filter, $limit=0){
+    public function delete($collection, $filter, $limit = 0)
+    {
         $this->checkManager();
         $bulk = new \MongoDB\Driver\BulkWrite;
         $bulk->delete($filter, ['limit' => $limit]);   // limit 为 1 时，删除第一条匹配数据
 
         $writeConcern = new \MongoDB\Driver\WriteConcern(\MongoDB\Driver\WriteConcern::MAJORITY, 1000);
         $result = $this->manager->executeBulkWrite($this->config['database'].'.'.$collection, $bulk, $writeConcern);
-        if($result){
+        if ($result) {
             $result = $result->getDeletedCount();
         }
+
         return $result;
     }
 
@@ -128,8 +139,10 @@ class MongoTask{
      * @param $command
      * @return cursor
      */
-    protected function executeCommand($command){
+    protected function executeCommand($command)
+    {
         $this->checkManager();
+
         return $this->manager->executeCommand($this->config['database'], new \MongoDB\Driver\Command($command));
     }
 
@@ -139,19 +152,21 @@ class MongoTask{
      * @param $pipeline
      * @return array
      */
-    public function aggregate($collection, $pipeline){
+    public function aggregate($collection, $pipeline)
+    {
         $command = [
             'aggregate' => $collection,
-            'pipeline' => $pipeline,
-            'cursor' => new \stdClass,
+            'pipeline'  => $pipeline,
+            'cursor'    => new \stdClass,
         ];
         $result = [];
         $cursor = $this->executeCommand($command);
-        if($cursor){
-            foreach($cursor as $document){
+        if ($cursor) {
+            foreach ($cursor as $document) {
                 $result[] = (array)$document;
             }
         }
+
         return $result;
     }
 
@@ -165,24 +180,26 @@ class MongoTask{
      * @param $filter
      * @return array
      */
-    public function group($collection, $key, $initial, $reduce, $filter){
+    public function group($collection, $key, $initial, $reduce, $filter)
+    {
         $command = [
-            'group'=>[
-                'ns' => $collection,
-                'key' => $key,
+            'group' => [
+                'ns'      => $collection,
+                'key'     => $key,
                 'initial' => $initial,
                 '$reduce' => new \MongoDB\BSON\Javascript($reduce),
-                'query' => $filter,
-            ]
+                'query'   => $filter,
+            ],
         ];
         $cursor = $this->executeCommand($command);
         $data = [];
-        if($cursor) {
+        if ($cursor) {
             $resObjArray = $cursor->toArray()[0]->retval;
-            foreach($resObjArray as $obj){
+            foreach ($resObjArray as $obj) {
                 $data[] = (array)$obj;
             }
         }
+
         return $data;
     }
 
@@ -193,16 +210,18 @@ class MongoTask{
      * @param $filter
      * @return int
      */
-    public function count($collection, $filter){
+    public function count($collection, $filter)
+    {
         $command = [
             'count' => $collection,
             'query' => $filter,
         ];
         $cursor = $this->executeCommand($command);
         $num = 0;
-        if($cursor) {
+        if ($cursor) {
             $num = $cursor->toArray()[0]->n;
         }
+
         return $num;
     }
 }

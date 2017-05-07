@@ -11,8 +11,10 @@ namespace ZPHP\Coroutine\Http;
 
 use ZPHP\Coroutine\Base\CoroutineBase;
 
-class HttpClientCoroutine extends CoroutineBase{
-    public function __construct(){
+class HttpClientCoroutine extends CoroutineBase
+{
+    public function __construct()
+    {
         $this->ioVector = new Client();
     }
 
@@ -22,8 +24,10 @@ class HttpClientCoroutine extends CoroutineBase{
      * @param array $postData
      * @return $this
      */
-    public function request($url, $postData=[]){
-        $data = ['url'=>$url, 'postdata'=>$postData];
+    public function request($url, $postData = [])
+    {
+        $data = ['url' => $url, 'postdata' => $postData];
+
         return parent::command($data);
     }
 

@@ -10,18 +10,15 @@ namespace ZPHP\Controller;
 
 use ZPHP\Core\Config;
 use ZPHP\Core\Container;
-use ZPHP\Core\Factory;
-use ZPHP\Core\Log;
 use ZPHP\Core\Swoole;
 use ZPHP\Monitor\Monitor;
 use ZPHP\Network\Http\Httpinput;
 use ZPHP\Network\Http\Request;
-use ZPHP\Network\Http\Response;
 use ZPHP\Session\Session;
 use ZPHP\View\View;
-use ZPHP\ZPHP;
 
-class Controller extends IController{
+class Controller extends IController
+{
 
     public $swRequest;
     public $swResponse;
@@ -32,7 +29,7 @@ class Controller extends IController{
     protected $request;
 
     /**
-     * @var View $view;
+     * @var View $view ;
      */
     protected $view;
 
@@ -40,7 +37,7 @@ class Controller extends IController{
     protected $template;
     protected $tplVar = [];
     protected $tplFile = '';
-    protected $tmodule ;
+    protected $tmodule;
     protected $tcontroller;
     protected $tmethod;
 
@@ -57,40 +54,42 @@ class Controller extends IController{
     function __clone()
     {
         // TODO: Implement __clone() method.
-        $cloneArray = ['view', 'request','response'];
-        foreach($cloneArray as $item){
-            if(!empty($this->$item)){
+        $cloneArray = ['view', 'request', 'response'];
+        foreach ($cloneArray as $item) {
+            if (!empty($this->$item)) {
                 $this->$item = clone $this->$item;
             }
         }
     }
 
 
-
-
     /**
      * 获取自身服务状态
      * @return string
      */
-    public function getNowServiceStatus(){
+    public function getNowServiceStatus()
+    {
         ob_start();
         /**
-         *  @var Monitor $monitor;
+         * @var Monitor $monitor ;
          */
 //        $monitor = Factory::getInstance(\ZPHP\Monitor\Monitor::class);
         $monitor = Container::Monitor('Monitor');
         $monitor->outPutWebStatus();
         $result = ob_get_contents();
         ob_end_clean();
+
         return $result;
     }
 
 
-    protected function setResponseContent($content){
+    protected function setResponseContent($content)
+    {
         $this->response->setReponseContent($content);
     }
 
-    protected function setStatusCode($code){
+    protected function setStatusCode($code)
+    {
         $this->response->setHttpCode($code);
     }
 
@@ -98,24 +97,29 @@ class Controller extends IController{
      * @param $key
      * @param $value
      */
-    protected function setHeader($key, $value){
+    protected function setHeader($key, $value)
+    {
         $this->response->setHeader($key, $value);
     }
 
 
-    protected function setSession($key, $value){
+    protected function setSession($key, $value)
+    {
         $this->response->setSession($key, $value);
     }
 
-    protected function setCookie($key, $value){
+    protected function setCookie($key, $value)
+    {
         $this->response->setCookie($key, $value);
     }
+
     /**
      * html return
      * @param $data
      */
-    protected function strReturn($data, $code=200){
-        if($this->checkResponse()){
+    protected function strReturn($data, $code = 200)
+    {
+        if ($this->checkResponse()) {
             $this->setHeader('Content-Type', 'text/html; charset=utf-8');
             $result = strval($data);
             $this->setStatusCode($code);
@@ -129,14 +133,15 @@ class Controller extends IController{
      * @param $data
      * @throws \Exception
      */
-    protected function jsonReturn($data){
-        if($this->checkResponse()) {
+    protected function jsonReturn($data)
+    {
+        if ($this->checkResponse()) {
             $result = json_encode($data);
             if (!empty(Config::get('response_filter'))) {
                 $result = $this->strNull($result);
             }
             $this->setStatusCode(200);
-            $this->setHeader('Content-Type',   'application/json');
+            $this->setHeader('Content-Type', 'application/json');
             $this->setResponseContent($result);
         }
     }
@@ -146,9 +151,10 @@ class Controller extends IController{
      * @param $content
      * @param $type
      */
-    protected function image($content, $type){
-        if($this->checkResponse()) {
-            $this->setHeader('Content-Type', 'image/' . $type);
+    protected function image($content, $type)
+    {
+        if ($this->checkResponse()) {
+            $this->setHeader('Content-Type', 'image/'.$type);
             $this->setStatusCode(200);
             ob_start();
             $ImageFun = 'image'.$type;
@@ -165,7 +171,8 @@ class Controller extends IController{
      * @param $name
      * @param $value
      */
-    protected function assign($name, $value){
+    protected function assign($name, $value)
+    {
         $this->tplVar[$name] = $value;
     }
 
@@ -175,7 +182,8 @@ class Controller extends IController{
      * @param $template
      * @throws \Exception
      */
-    protected function setTemplate($template){
+    protected function setTemplate($template)
+    {
         $this->view->setTemplate($template);
     }
 
@@ -186,9 +194,12 @@ class Controller extends IController{
      * @return mixed
      * @throws \Exception
      */
-    public function fetch($tplFile=''){
-        if(Config::getField('session', 'enable'))
+    public function fetch($tplFile = '')
+    {
+        if (Config::getField('session', 'enable')) {
             $this->assign('session', $this->response->session);
+        }
+
         return $this->view->fetch($this->tplVar, $tplFile);
     }
 
@@ -197,7 +208,8 @@ class Controller extends IController{
      * 跳转方法
      * @param $url
      */
-    protected function redirect($url){
+    protected function redirect($url)
+    {
         $this->setHeader('Location', $url);
         $this->strReturn('', 302);
     }
@@ -207,7 +219,8 @@ class Controller extends IController{
      * 载入模板文件
      * @param string $tplFile
      */
-    public function display($tplFile=''){
+    public function display($tplFile = '')
+    {
         $content = $this->fetch($tplFile);
         $this->strReturn($content);
     }
@@ -217,18 +230,19 @@ class Controller extends IController{
      * 处理请求
      * @return \Generator
      */
-    public function coroutineStart(){
+    public function coroutineStart()
+    {
         yield $this->doBeforeExecute();
         $initRes = true;
-        if(method_exists($this, 'init')){
+        if (method_exists($this, 'init')) {
             $initRes = yield $this->init();
         }
-        try{
+        try {
             $result = null;
-            if($this->checkResponse() && $initRes){
+            if ($this->checkResponse() && $initRes) {
                 $result = yield call_user_func_array($this->coroutineMethod, $this->coroutineParam);
             }
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             $this->onUserExceptionHandle($e->getMessage());
         }
 
@@ -239,12 +253,14 @@ class Controller extends IController{
     /**
      * 结束请求
      * @param $result
+     * @return \Generator
      */
-    protected function endResponse($result=null){
-        if($this->checkResponse()){
-            if(!is_string($result) && $this->checkApi()){
+    protected function endResponse($result = null)
+    {
+        if ($this->checkResponse()) {
+            if (!is_string($result) && $this->checkApi()) {
                 $this->jsonReturn($result);
-            }else{
+            } else {
                 $this->strReturn($result);
             }
         }
@@ -255,7 +271,8 @@ class Controller extends IController{
     /**
      * 异常处理
      */
-    public function onUserExceptionHandle($message){
+    public function onUserExceptionHandle($message)
+    {
         $this->strReturn($message);
     }
 
@@ -263,8 +280,9 @@ class Controller extends IController{
      * 系统异常错误处理
      * @param $message
      */
-    public function onSystemException($message){
-        $message = DEBUG===true?$message:'系统出现了异常';
+    public function onSystemException($message)
+    {
+        $message = DEBUG === true ? $message : '系统出现了异常';
         $this->strReturn(Swoole::info($message), 500);
         yield $this->endResponse();
     }
@@ -275,25 +293,29 @@ class Controller extends IController{
      */
     public function doBeforeExecute()
     {
-        if(!empty($this->request)) {
+        if (!empty($this->request)) {
             yield $this->request->init($this->swRequest);
             $this->copyCookie($this->request, $this->response);
             $this->copySession($this->request, $this->response);
         }
-        if(!empty($this->view)) {
-            $this->view->init([
-                'module' => $this->module,
-                'controller' => $this->controller,
-                'method' => $this->method
-            ]);
+        if (!empty($this->view)) {
+            $this->view->init(
+                [
+                    'module'     => $this->module,
+                    'controller' => $this->controller,
+                    'method'     => $this->method,
+                ]
+            );
         }
     }
 
-    protected function copyCookie($request, $response){
+    protected function copyCookie($request, $response)
+    {
         $response->cookie = $request->cookie;
     }
 
-    protected function copySession($request, $response){
+    protected function copySession($request, $response)
+    {
         $response->session = $request->session;
     }
 
@@ -301,13 +323,14 @@ class Controller extends IController{
      * 请求结束前做的一些处理,如session和cookie的写入
      * @throws \Exception
      */
-    protected function doBeforeDestroy(){
-        if(!empty(Config::getField('session', 'enable'))){
+    protected function doBeforeDestroy()
+    {
+        if (!empty(Config::getField('session', 'enable'))) {
             yield Session::set($this->request->session(), $this->request, $this->response);
         }
-        if(!empty(Config::getField('cookie', 'enable'))){
+        if (!empty(Config::getField('cookie', 'enable'))) {
             $cacheExpire = Config::getField('cookie', 'cache_expire', 3600);
-            if(!empty($this->input->cookie)) {
+            if (!empty($this->input->cookie)) {
                 foreach ($this->input->cookie() as $key => $value) {
                     $this->response->cookie($key, $value, time() + $cacheExpire);
                 }

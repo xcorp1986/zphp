@@ -9,10 +9,11 @@
 
 namespace ZPHP\Core;
 
-class DI{
+class DI
+{
 
 
-    static protected $closureList;
+    protected static $closureList;
     static private $instance = null;
 
     private function __construct()
@@ -20,9 +21,12 @@ class DI{
 
     }
 
-    public static function getInstance(){
-        if(empty(self::$instance))
+    public static function getInstance()
+    {
+        if (empty(self::$instance)) {
             self::$instance = new DI();
+        }
+
         return self::$instance;
     }
 
@@ -32,9 +36,10 @@ class DI{
      * @param $type
      * @param $objectName
      */
-    static public function set($key, $type, $objectName, $params=[]){
-        $objectName = str_replace("/","\\", $objectName);
-        self::$closureList[$type][$key] = function()use($objectName, $params){
+    public static function set($key, $type, $objectName, $params = [])
+    {
+        $objectName = str_replace("/", "\\", $objectName);
+        self::$closureList[$type][$key] = function () use ($objectName, $params) {
             return Factory::getInstance($objectName, $params);
         };
     }
@@ -44,11 +49,13 @@ class DI{
      * @param string $type
      * @return mixed
      */
-    static public function get($key, $type='model', $params=[]){
-        if(empty(self::$closureList[$type][$key])){
+    public static function get($key, $type = 'model', $params = [])
+    {
+        if (empty(self::$closureList[$type][$key])) {
             $objectName = $type."\\".$key;
             self::set($key, $type, $objectName, $params);
         }
+
         return call_user_func(self::$closureList[$type][$key]);
     }
 }

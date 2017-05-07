@@ -8,6 +8,7 @@
 
 namespace ZPHP\Coroutine\Base;
 
-interface IOvector{
-    function command(callable $callback=null, $data);
+interface IOvector
+{
+    function command(callable $callback = null, $data);
 }

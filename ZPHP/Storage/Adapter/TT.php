@@ -6,8 +6,9 @@
 
 
 namespace ZPHP\Storage\Adapter;
-use ZPHP\Manager,
-    ZPHP\Storage\IStorage;
+
+use ZPHP\Manager;
+use ZPHP\Storage\IStorage;
 
 class TT implements IStorage
 {
@@ -31,7 +32,7 @@ class TT implements IStorage
 
     public function getMutilMD($userId, $keys, $slaveConfig = '')
     {
-        $newKeys = array();
+        $newKeys = [];
         foreach ($keys as $key) {
             $newKeys[] = $this->uKey($userId, $key);
         }
@@ -44,6 +45,7 @@ class TT implements IStorage
                 }
             }
         }
+
         return $datas;
     }
 
@@ -69,12 +71,14 @@ class TT implements IStorage
                 throw new \Exception("error data: {$userId}, {$key}, {$code}");
             }
         }
+
         return $data;
     }
 
     public function del($userId, $key)
     {
         $key = $this->uKey($userId, $key);
+
         return $this->tt->del($key);
     }
 
@@ -99,6 +103,7 @@ class TT implements IStorage
     {
         $key = $this->uKey($userId, $key);
         $this->setSlave($slaveName);
+
         return $this->stt->set($key, $data);
     }
 
@@ -106,18 +111,21 @@ class TT implements IStorage
     {
         $key = $this->uKey($userId, $key);
         $this->setSlave($slaveName);
+
         return $this->stt->delete($key);
     }
 
     public function setMD($userId, $key, $data)
     {
         $key = $this->uKey($userId, $key);
+
         return $this->tt->set($key, $data);
     }
 
     public function setMDCAS($userId, $key, $data)
     {
         $key = $this->uKey($userId, $key);
+
         return $this->tt->set($key, $data);
     }
 
@@ -128,6 +136,7 @@ class TT implements IStorage
             $keys[$newKey] = $value;
             unset($key);
         }
+
         return $this->tt->setMulti($keys);
     }
 
@@ -139,7 +148,7 @@ class TT implements IStorage
 
     private function uKey($userId, $key)
     {
-        return $userId . "_" . $this->suffix . "__" . $key;
+        return $userId."_".$this->suffix."__".$key;
     }
 
     public function close()

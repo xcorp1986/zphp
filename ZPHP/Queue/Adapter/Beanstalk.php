@@ -3,6 +3,7 @@
  * User: shenzhe
  * Date: 13-6-17
  */
+
 namespace ZPHP\Queue\Adapter;
 
 use ZPHP\Manager;
@@ -28,6 +29,7 @@ class Beanstalk implements IQueue
     {
         $job = $this->beanstalk->reserve($key);
         $this->beanstalk->delete($job['id'], $key);
+
         return $job;
     }
 }

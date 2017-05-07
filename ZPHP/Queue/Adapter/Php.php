@@ -3,6 +3,7 @@
  * User: shenzhe
  * Date: 13-6-17
  */
+
 namespace ZPHP\Queue\Adapter;
 
 
@@ -24,6 +25,7 @@ class Php implements IQueue
     public function add($key, $data)
     {
         $this->setKey($key);
+
         return msg_send($this->queue, 1, $data);
     }
 
@@ -31,6 +33,7 @@ class Php implements IQueue
     {
         $this->setKey($key);
         msg_receive($this->queue, 0, $messageType, 1024, $data, true, MSG_IPC_NOWAIT);
+
         return $data;
     }
 }

@@ -6,12 +6,19 @@
 
 
 namespace ZPHP\Storage\Adapter;
-use ZPHP\Manager,
-    ZPHP\Storage\IStorage;
+
+use ZPHP\Manager;
+use ZPHP\Storage\IStorage;
 
 class Redis implements IStorage
 {
+    /**
+     * @var \Redis
+     */
     private $redis;
+    /**
+     * @var \Redis
+     */
     private $sRedis = null;
     private $suffix = "";
     private $pconnect;
@@ -38,7 +45,7 @@ class Redis implements IStorage
 
     private function uKey($userId)
     {
-        return $userId . '_' . $this->suffix;
+        return $userId.'_'.$this->suffix;
     }
 
     public function getMutilMD($userId, $keys, $slaveConfig = '')
@@ -53,6 +60,7 @@ class Redis implements IStorage
                 }
             }
         }
+
         return $datas;
     }
 
@@ -60,6 +68,7 @@ class Redis implements IStorage
     {
         $uKey = $this->uKey($userId);
         $data = $this->redis->hGet($uKey, $key);
+
         return $data;
     }
 
@@ -68,6 +77,7 @@ class Redis implements IStorage
         $uKey = $this->uKey($userId);
         $this->setSlave($slaveConfig);
         $data = $this->sRedis->hGet($uKey, $key);
+
         return $data;
     }
 
@@ -76,6 +86,7 @@ class Redis implements IStorage
         $uKey = $this->uKey($userId);
         $this->setSlave($slaveConfig);
         $data = $this->sRedis->hSet($uKey, $key, $data);
+
         return $data;
     }
 
@@ -84,6 +95,7 @@ class Redis implements IStorage
         $uKey = $this->uKey($userId);
         $this->setSlave($slaveConfig);
         $data = $this->sRedis->hDel($uKey, $key);
+
         return $data;
     }
 
@@ -93,12 +105,14 @@ class Redis implements IStorage
             return $this->setMDCAS($userId, $key, $data);
         }
         $uKey = $this->uKey($userId);
+
         return $this->redis->hSet($uKey, $key, $data);
     }
 
     public function addMD($userId, $key, $data)
     {
         $uKey = $this->uKey($userId);
+
         return $this->redis->hSetNx($uKey, $key, $data);
     }
 
@@ -110,18 +124,21 @@ class Redis implements IStorage
         if (false === $result) {
             throw new \Exception('cas error');
         }
+
         return $result;
     }
 
     public function del($userId, $key)
     {
         $uKey = $this->uKey($userId);
+
         return $this->redis->hDel($uKey, $key);
     }
 
     public function setMultiMD($userId, $keys)
     {
         $uKey = $this->uKey($userId);
+
         return $this->redis->hMSet($uKey, $keys);
     }
 

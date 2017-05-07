@@ -6,6 +6,7 @@
 
 
 namespace ZPHP\Serialize\Adapter;
+
 class Msgpack
 {
     public function serialize($data)

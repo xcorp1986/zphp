@@ -1,5 +1,7 @@
 <?php
+
 namespace ZPHP\Coroutine\Http;
+
 use ZPHP\Core\Log;
 use ZPHP\Coroutine\Base\IOvector;
 
@@ -9,7 +11,8 @@ use ZPHP\Coroutine\Base\IOvector;
  * Date: 16-9-2
  * Time: 下午2:54
  */
-class Client implements IOvector{
+class Client implements IOvector
+{
 
     protected $swooleHttpClient;
     protected $data;
@@ -18,13 +21,15 @@ class Client implements IOvector{
      * @param $data = ['url'=>'','postdata'=>[]]
      * @param $callback
      */
-    protected function initHttpClient($callback, $data){
+    protected function initHttpClient($callback, $data)
+    {
         $this->data = $data;
         $this->data['callback'] = $callback;
     }
 
 
-    public function command(callable $callback=null, $data){
+    public function command(callable $callback = null, $data)
+    {
         $this->initHttpClient($callback, $data);
         $this->getHttpClient();
     }
@@ -52,21 +57,24 @@ class Client implements IOvector{
             $this->data['path'] = $parseUrl['path'];
 
             $data = $this->data;
-            swoole_async_dns_lookup($this->data['host'], function ($host, $ip) use (&$data) {
-                try{
-                    if (empty($ip)) {
-                        throw new \Exception("找不到该域名");
+            swoole_async_dns_lookup(
+                $this->data['host'],
+                function ($host, $ip) use (&$data) {
+                    try {
+                        if (empty($ip)) {
+                            throw new \Exception("找不到该域名");
+                        }
+                        $client = new \swoole_http_client($ip, $data['port'], $data['ssl']);
+                        $this->myCurl($client);
+                    } catch (\Exception $e) {
+                        call_user_func_array($this->data['callback'], ['data' => ['exception' => $e->getMessage()]]);
                     }
-                    $client = new \swoole_http_client($ip, $data['port'], $data['ssl']);
-                    $this->myCurl($client);
-                }catch(\Exception $e){
-                    call_user_func_array($this->data['callback'], ['data'=>['exception'=>$e->getMessage()]]);
-                }
 
-            });
-        }catch(\Exception $e){
+                }
+            );
+        } catch (\Exception $e) {
             Log::write($e->getMessage());
-            call_user_func_array($this->data['callback'], ['data'=>['exception'=>$e->getMessage()]]);
+            call_user_func_array($this->data['callback'], ['data' => ['exception' => $e->getMessage()]]);
         }
     }
 
@@ -74,16 +82,23 @@ class Client implements IOvector{
     /**
      * http 请求的过程
      */
-    public function myCurl($swoolehttpclient){
-        if(!empty($this->data['postdata'])) {
-            $swoolehttpclient->post($this->data['path'], $this->data['postdata'],
+    public function myCurl($swoolehttpclient)
+    {
+        if (!empty($this->data['postdata'])) {
+            $swoolehttpclient->post(
+                $this->data['path'],
+                $this->data['postdata'],
                 function ($swoolehttpclient) {
-                    call_user_func_array($this->data['callback'], ['data'=>$swoolehttpclient->body]);
-                });
-        }else{
-            $swoolehttpclient->get($this->data['path'], function ($swoolehttpclient) {
-                call_user_func_array($this->data['callback'], ['data'=>$swoolehttpclient->body]);
-            });
+                    call_user_func_array($this->data['callback'], ['data' => $swoolehttpclient->body]);
+                }
+            );
+        } else {
+            $swoolehttpclient->get(
+                $this->data['path'],
+                function ($swoolehttpclient) {
+                    call_user_func_array($this->data['callback'], ['data' => $swoolehttpclient->body]);
+                }
+            );
         }
     }
 

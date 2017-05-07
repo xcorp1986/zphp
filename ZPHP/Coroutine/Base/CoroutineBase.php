@@ -8,7 +8,8 @@
 
 namespace ZPHP\Coroutine\Base;
 
-abstract class CoroutineBase implements ICoroutineBase{
+abstract class CoroutineBase implements ICoroutineBase
+{
 
     /**
      * @var IOvector
@@ -20,8 +21,10 @@ abstract class CoroutineBase implements ICoroutineBase{
      * @param $data = ['sql'=>$sql,'trans_id'=>$trans_id]
      * @return $this
      */
-    public function command($data){
+    public function command($data)
+    {
         $this->data = $data;
+
         return $this;
     }
 
@@ -30,7 +33,8 @@ abstract class CoroutineBase implements ICoroutineBase{
      * 协程调度器设置回调函数
      * @param callable $callback
      */
-    function sendCallback(callable $callback){
+    function sendCallback(callable $callback)
+    {
         $this->ioVector->command($callback, $this->data);
     }
 }

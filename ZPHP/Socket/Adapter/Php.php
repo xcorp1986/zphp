@@ -7,6 +7,7 @@
 
 
 namespace ZPHP\Socket\Adapter;
+
 use ZPHP\Socket\IServer;
 
 class Php implements IServer
@@ -20,7 +21,7 @@ class Php implements IServer
     public $server_event;
     public $server_sock;
     public $max_connect = 10000;
-    public $client_sock = array();
+    public $client_sock = [];
     public $client_num = 0;
 
     public function __construct($config)
@@ -47,9 +48,10 @@ class Php implements IServer
     {
         $socket = \stream_socket_server($uri, $errno, $errstr);
         if (!$socket) {
-            throw new \Exception($errno . $errstr);
+            throw new \Exception($errno.$errstr);
         }
         \stream_set_blocking($socket, $block);
+
         return $socket;
     }
 
@@ -62,10 +64,12 @@ class Php implements IServer
         $this->client_num++;
         if ($this->client_num > $this->max_connect) {
             $this->_closeSocket($client_socket);
+
             return false;
         } else {
             //设置写缓冲区
             \stream_set_write_buffer($client_socket, $this->write_buffer_size);
+
             return $client_socket_id;
         }
     }
@@ -77,7 +81,13 @@ class Php implements IServer
         //建立服务器端Socket
         $this->server_sock = $this->create("tcp://{$this->config['host']}:{$this->config['port']}");
         //设置事件监听，监听到服务器端socket可读，则有连接请求
-        \event_set($this->server_event, $this->server_sock, EV_READ | EV_PERSIST, __CLASS__ . '::server_handle_connect', $this);
+        \event_set(
+            $this->server_event,
+            $this->server_sock,
+            EV_READ | EV_PERSIST,
+            __CLASS__.'::server_handle_connect',
+            $this
+        );
         \event_base_set($this->server_event, $this->base_event);
         \event_add($this->server_event);
         $this->client->onStart();
@@ -99,6 +109,7 @@ class Php implements IServer
                 return $written;
             }
         }
+
         return $written;
     }
 
@@ -118,7 +129,7 @@ class Php implements IServer
             $this->_send($sock, $data);
         }
 
-        return TRUE;
+        return true;
     }
 
     /**
@@ -162,7 +173,13 @@ class Php implements IServer
             $client_socket = $server->client_sock[$client_id];
             //新的事件监听，监听客户端发生的事件
             $client_event = \event_new();
-            \event_set($client_event, $client_socket, EV_READ | EV_PERSIST, __CLASS__ . "::server_handle_receive", array($server, $client_id));
+            \event_set(
+                $client_event,
+                $client_socket,
+                EV_READ | EV_PERSIST,
+                __CLASS__."::server_handle_receive",
+                [$server, $client_id]
+            );
             //设置基本时间系统
             \event_base_set($client_event, $server->base_event);
             //加入事件监听组
@@ -198,9 +215,11 @@ class Php implements IServer
         $data = false;
         while ($buf = \stream_socket_recvfrom($fp, $length)) {
             $data .= $buf;
-            if (\strlen($buf) < $length)
+            if (\strlen($buf) < $length) {
                 break;
+            }
         }
+
         return $data;
     }
 

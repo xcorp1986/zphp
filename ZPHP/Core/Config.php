@@ -22,7 +22,7 @@ class Config
     public static function load($configPath)
     {
         $files = Dir::tree($configPath, "/.php$/");
-        $config = array();
+        $config = [];
         if (!empty($files)) {
             foreach ($files as $file) {
                 $config += include "{$file}";
@@ -31,19 +31,22 @@ class Config
         self::$config = $config;
         if (Request::isLongServer()) {
             self::$configPath = $configPath;
-            self::$nextCheckTime = time() + empty($config['project']['config_check_time']) ? 5 : $config['project']['config_check_time'];
+            self::$nextCheckTime = time(
+            ) + empty($config['project']['config_check_time']) ? 5 : $config['project']['config_check_time'];
             self::$lastModifyTime = \filectime($configPath);
         }
+
         return $config;
     }
 
     public static function loadFiles(array $files)
     {
-        $config = array();
+        $config = [];
         foreach ($files as $file) {
             $config += include "{$file}";
         }
         self::$config = $config;
+
         return $config;
     }
 
@@ -54,6 +57,7 @@ class Config
         if ($throw && is_null($result)) {
             throw new \Exception("{key} config empty");
         }
+
         return $result;
     }
 
@@ -76,6 +80,7 @@ class Config
         if ($throw && is_null($result)) {
             throw new \Exception("{key} config empty");
         }
+
         return $result;
     }
 
@@ -106,6 +111,7 @@ class Config
                 }
             }
         }
+
         return;
     }
 }

@@ -6,9 +6,10 @@
 
 
 namespace ZPHP\Server\Adapter;
-use ZPHP\Core,
-    ZPHP\Server\IServer,
-    ZPHP\Protocol;
+
+use ZPHP\Core;
+use ZPHP\Protocol;
+use ZPHP\Server\IServer;
 
 class Rpc implements IServer
 {
@@ -22,6 +23,7 @@ class Rpc implements IServer
     {
         Protocol\Request::setServer(Protocol\Factory::getInstance('Rpc'));
         Protocol\Request::parse($params);
+
         return Core\Route::route();
     }
 

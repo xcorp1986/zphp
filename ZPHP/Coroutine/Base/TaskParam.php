@@ -8,7 +8,8 @@
 
 namespace ZPHP\Coroutine\Base;
 
-class TaskParam{
+class TaskParam
+{
     public $taskId;
     public $config;
 

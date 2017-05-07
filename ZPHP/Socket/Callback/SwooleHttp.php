@@ -3,11 +3,7 @@
 
 namespace ZPHP\Socket\Callback;
 
-use ZPHP\Core\Db,
-    ZPHP\Core\Config,
-    ZPHP\Core\Swoole,
-    ZPHP\Core\Log;
-use ZPHP\Protocol;
+use ZPHP\Core\Log;
 use ZPHP\Socket\Callback\Swoole as CSwoole;
 
 
@@ -22,8 +18,8 @@ abstract class SwooleHttp extends CSwoole
     public function onWorkerStart($server, $workerId)
     {
         parent::onWorkerStart($server, $workerId);
-        set_error_handler(array($this, 'onErrorHandle'), E_USER_ERROR);
-        register_shutdown_function(array($this, 'onErrorShutDown'));
+        set_error_handler([$this, 'onErrorHandle'], E_USER_ERROR);
+        register_shutdown_function([$this, 'onErrorShutDown']);
     }
 
 
@@ -42,9 +38,10 @@ abstract class SwooleHttp extends CSwoole
     function onErrorShutDown()
     {
         $error = error_get_last();
-        if (!isset($error['type'])) return;
-        switch ($error['type'])
-        {
+        if (!isset($error['type'])) {
+            return;
+        }
+        switch ($error['type']) {
             case E_ERROR :
             case E_PARSE :
             case E_USER_ERROR:
@@ -62,25 +59,29 @@ abstract class SwooleHttp extends CSwoole
     /**
      * 捕获set_error_handle错误
      */
-    public function onErrorHandle($errno, $errstr, $errfile, $errline){
-        $error = array(
+    public function onErrorHandle($errno, $errstr, $errfile, $errline)
+    {
+        $error = [
             'message' => $errstr,
-            'file' => $errfile,
-            'line' => $errline,
-        );
+            'file'    => $errfile,
+            'line'    => $errline,
+        ];
         $this->errorResponse($error);
     }
 
 
-
-    public function errorResponse($error){
-        $errorMsg = DEBUG===true?"{$error['message']} ({$error['file']}:{$error['line']})":'application internal error!';
-        Log::write("errorResponse:".$errorMsg,Log::ERROR, true);
+    public function errorResponse($error)
+    {
+        $errorMsg = DEBUG === true ? "{$error['message']} ({$error['file']}:{$error['line']})" : 'application internal error!';
+        Log::write("errorResponse:".$errorMsg, Log::ERROR, true);
         $this->afterResponese();
     }
 
-    protected function afterResponese(){
-        if (ob_get_contents()) ob_end_clean();
+    protected function afterResponese()
+    {
+        if (ob_get_contents()) {
+            ob_end_clean();
+        }
     }
 
     abstract public function onRequest($request, $response);

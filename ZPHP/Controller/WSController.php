@@ -11,7 +11,8 @@ namespace ZPHP\Controller;
 use ZPHP\Core\Config;
 use ZPHP\Core\Factory;
 
-class WSController extends IController{
+class WSController extends IController
+{
     protected $socketData;
     protected $fd;
     protected $server;
@@ -25,14 +26,15 @@ class WSController extends IController{
     {
         // TODO: Implement __clone() method.
         $cloneArray = ['response'];
-        foreach($cloneArray as $item){
-            if(!empty($this->$item)){
+        foreach ($cloneArray as $item) {
+            if (!empty($this->$item)) {
                 $this->$item = clone $this->$item;
             }
         }
     }
 
-    public function setSocket($server, $fd, $socketData){
+    public function setSocket($server, $fd, $socketData)
+    {
         $this->server = $server;
         $this->fd = $fd;
         $this->socketData = $socketData;
@@ -42,18 +44,19 @@ class WSController extends IController{
      * 处理请求
      * @return \Generator
      */
-    public function coroutineStart(){
+    public function coroutineStart()
+    {
         $initRes = true;
-        if(method_exists($this, 'init')){
+        if (method_exists($this, 'init')) {
             $initRes = yield $this->init();
         }
-        if($this->checkResponse() && $initRes){
+        if ($this->checkResponse() && $initRes) {
             $result = yield call_user_func_array($this->coroutineMethod, $this->coroutineParam);
         }
-        if($this->checkResponse()){
-            if(!is_string($result) && $this->checkApi()){
+        if ($this->checkResponse()) {
+            if (!is_string($result) && $this->checkApi()) {
                 $this->jsonReturn($result);
-            }else{
+            } else {
                 $this->strReturn($result);
             }
 
@@ -62,8 +65,9 @@ class WSController extends IController{
         $this->destroy();
     }
 
-    public function jsonReturn($data){
-        if($this->checkResponse()) {
+    public function jsonReturn($data)
+    {
+        if ($this->checkResponse()) {
             $result = json_encode($data);
             if (!empty(Config::get('response_filter'))) {
                 $result = $this->strNull($result);
@@ -72,8 +76,9 @@ class WSController extends IController{
         }
     }
 
-    public function strReturn($data){
-        if($this->checkResponse()) {
+    public function strReturn($data)
+    {
+        if ($this->checkResponse()) {
             $this->response->setReponseContent(strval($data));
         }
     }

@@ -24,6 +24,7 @@ class Dir
         if (!self::make(\dirname($dir), $mode)) {
             return false;
         }
+
         return \mkdir($dir, $mode);
     }
 
@@ -35,7 +36,7 @@ class Dir
      * @param bool $deep
      * @return array
      */
-    public static function tree($dir, $filter = '', &$result = array(), $deep = false)
+    public static function tree($dir, $filter = '', &$result = [], $deep = false)
     {
         $files = new \DirectoryIterator($dir);
         foreach ($files as $file) {
@@ -46,22 +47,23 @@ class Dir
             $filename = $file->getFilename();
             //过滤文件移动到下面  change by ahuo 2013-09-11 16:23
             //if (!empty($filter) && !\preg_match($filter, $filename)) {
-              //  continue;
+            //  continue;
             //}
 
             if ($file->isDir()) {
-                self::tree($dir . DS . $filename, $filter, $result, $deep);
+                self::tree($dir.DS.$filename, $filter, $result, $deep);
             } else {
-                if(!empty($filter) && !\preg_match($filter,$filename)){
+                if (!empty($filter) && !\preg_match($filter, $filename)) {
                     continue;
                 }
                 if ($deep) {
                     $result[$dir] = $filename;
                 } else {
-                    $result[] = $dir . DS . $filename;
+                    $result[] = $dir.DS.$filename;
                 }
             }
         }
+
         return $result;
     }
 
@@ -75,8 +77,9 @@ class Dir
      * @return array
      * @throws \Exception
      */
-    static public function getClass($dir, $filter='', &$result=[], $before=''){
-        if(empty($filter)){
+    public static function getClass($dir, $filter = '', &$result = [], $before = '')
+    {
+        if (empty($filter)) {
             throw new \Exception("过滤条件错误");
         }
         $files = new \DirectoryIterator($dir);
@@ -86,20 +89,22 @@ class Dir
             }
             $filename = $file->getFilename();
             if ($file->isDir()) {
-                $tmp = $before.$filename . '\\';
-                self::getClass($dir.DS. $filename, $filter, $result, $tmp);
-            }else{
-                if(preg_match($filter,$filename, $match)){
-                    $result[] = $before.str_replace('.php','',$filename);
+                $tmp = $before.$filename.'\\';
+                self::getClass($dir.DS.$filename, $filter, $result, $tmp);
+            } else {
+                if (preg_match($filter, $filename, $match)) {
+                    $result[] = $before.str_replace('.php', '', $filename);
                 }
             }
         }
+
         return $result;
     }
 
 
-    static public function getFileName($dir, $filter='', &$result=[], $before=''){
-        if(empty($filter)){
+    public static function getFileName($dir, $filter = '', &$result = [], $before = '')
+    {
+        if (empty($filter)) {
             throw new \Exception("过滤条件错误");
         }
         $files = new \DirectoryIterator($dir);
@@ -109,14 +114,15 @@ class Dir
             }
             $filename = $file->getFilename();
             if ($file->isDir()) {
-                $tmp = $before.$filename . DS;
-                self::getFileName($dir.DS. $filename, $filter, $result, $tmp);
-            }else{
-                if(preg_match($filter,$filename, $match)){
+                $tmp = $before.$filename.DS;
+                self::getFileName($dir.DS.$filename, $filter, $result, $tmp);
+            } else {
+                if (preg_match($filter, $filename, $match)) {
                     $result[] = $before.$filename;
                 }
             }
         }
+
         return $result;
     }
 
@@ -138,11 +144,12 @@ class Dir
                 continue;
             }
             if ($file->isDir()) {
-                self::del($dir . DS . $filename);
+                self::del($dir.DS.$filename);
             } else {
-                \unlink($dir . DS . $filename);
+                \unlink($dir.DS.$filename);
             }
         }
+
         return \rmdir($dir);
     }
 

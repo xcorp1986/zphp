@@ -6,9 +6,10 @@
 
 
 namespace ZPHP\Server\Adapter;
-use ZPHP\Core,
-    ZPHP\Server\IServer,
-    ZPHP\Protocol;
+
+use ZPHP\Core;
+use ZPHP\Protocol;
+use ZPHP\Server\IServer;
 
 class Cli implements IServer
 {
@@ -17,6 +18,7 @@ class Cli implements IServer
         $server = Protocol\Factory::getInstance('Cli');
         Protocol\Request::setServer($server);
         Protocol\Request::parse($_SERVER['argv']);
+
         return Core\Route::route();
     }
 

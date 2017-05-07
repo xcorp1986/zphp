@@ -3,9 +3,6 @@
 
 namespace ZPHP\Socket\Callback;
 
-use ZPHP\Core;
-use ZPHP\Protocol;
-
 
 abstract class Hprose extends Swoole
 {
@@ -17,5 +14,6 @@ abstract class Hprose extends Swoole
     {
         $this->serv = $serv;
     }
+
     abstract public function onRegister();
 }

@@ -10,12 +10,13 @@ namespace ZPHP\Coroutine\Mongo;
 
 use ZPHP\Coroutine\Base\CoroutineBase;
 
-class MongoCoroutine extends CoroutineBase{
+class MongoCoroutine extends CoroutineBase
+{
 
     /**
      * @var $data = [
      * 'method' => 'count',
-        'param' => [$this->collection, $this->filter],
+     * 'param' => [$this->collection, $this->filter],
      * ]
      */
 

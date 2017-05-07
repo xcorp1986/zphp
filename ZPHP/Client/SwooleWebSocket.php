@@ -11,8 +11,6 @@ namespace ZPHP\Client;
 
 use ZPHP\Core\Config;
 use ZPHP\Core\Container;
-use ZPHP\Core\Factory;
-use ZPHP\Core\Log;
 use ZPHP\Core\WSRequest;
 use ZPHP\Socket\Callback\SwooleWebSocket as ZSwooleWebSocket;
 
@@ -20,7 +18,7 @@ class SwooleWebSocket extends ZSwooleWebSocket
 {
 
     /**
-     * @var WSRequest $websocketRequest;
+     * @var WSRequest $websocketRequest ;
      */
     private $websocketRequest;
     private $buff = [];
@@ -36,25 +34,25 @@ class SwooleWebSocket extends ZSwooleWebSocket
                 }
             } else {
                 if (!empty($this->buff[$frame->fd])) {
-                    $frame->data = $this->buff[$frame->fd] . $frame->data;
+                    $frame->data = $this->buff[$frame->fd].$frame->data;
                     unset($this->buff[$frame->fd]);
                 }
             }
             $websocketRequest = clone $this->websocketRequest;
             $websocketRequest->init($server, $frame);
             $httpResult = $this->dispatcher->distribute($websocketRequest);
-            if($httpResult!=='NULL') {
-                if(!is_string($httpResult)){
-                    if(strval(Config::getField('project','type'))=='api'){
+            if ($httpResult !== 'NULL') {
+                if (!is_string($httpResult)) {
+                    if (strval(Config::getField('project', 'type')) == 'api') {
                         $httpResult = json_encode($httpResult);
-                    }else{
+                    } else {
                         $httpResult = strval($httpResult);
                     }
                 }
                 $server->push($frame->fd, $httpResult);
             }
         } catch (\Exception $e) {
-            $msg = DEBUG===true?$e->getMessage():"系统异常了!";
+            $msg = DEBUG === true ? $e->getMessage() : "系统异常了!";
             $server->push($frame->fd, $msg);
         }
     }
@@ -68,7 +66,8 @@ class SwooleWebSocket extends ZSwooleWebSocket
         }
     }
 
-    public function onClose(){
+    public function onClose()
+    {
 //        $args_array = func_get_args();
 //        $swoole_server = $args_array[0];
 //        $fd = $args_array[1];

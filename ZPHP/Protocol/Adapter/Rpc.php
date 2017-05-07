@@ -6,7 +6,7 @@
 
 
 namespace ZPHP\Protocol\Adapter;
-use ZPHP\Core;
+
 use ZPHP\Core\Config;
 use ZPHP\Protocol\IProtocol;
 use ZPHP\Protocol\Request;
@@ -32,6 +32,7 @@ class Rpc implements IProtocol
             $methodName = $data[$mpn];
         }
         Request::init($ctrlName, $methodName, $data, Config::getField('project', 'view_mode', 'Rpc'));
+
         return true;
     }
 }

@@ -8,12 +8,16 @@
 
 namespace ZPHP\Core;
 
-class Swoole {
-    public static $instance ;
-    public static function getInstance(){
-        if(!self::$instance){
+class Swoole
+{
+    public static $instance;
+
+    public static function getInstance()
+    {
+        if (!self::$instance) {
             self::$instance = new Swoole;
         }
+
         return self::$instance;
     }
 
@@ -24,10 +28,9 @@ class Swoole {
      * @param $content
      * @return string
      */
-    public static function info($msg, $content='')
+    public static function info($msg, $content = '')
     {
-        if (DEBUG !==true )
-        {
+        if (DEBUG !== true) {
             $content = '';
         }
 
@@ -68,10 +71,10 @@ class Swoole {
                     <h1>$msg</h1>
                     <p>$content</p><pre>
 HTMLS;
-        if (DEBUG===true) {
+        if (DEBUG === true) {
 
             $trace = debug_backtrace();
-            $info .= str_repeat('-', 100) . "\n";
+            $info .= str_repeat('-', 100)."\n";
             foreach ($trace as $k => $t) {
                 if (empty($t['line'])) {
                     $t['line'] = 0;
@@ -87,7 +90,7 @@ HTMLS;
                 }
                 $info .= "#$k line:{$t['line']} call:{$t['class']}{$t['type']}{$t['function']}\tfile:{$t['file']}\n";
             }
-            $info .= str_repeat('-', 100) . "\n";
+            $info .= str_repeat('-', 100)."\n";
         }
         $info .= '</pre></div></body></html>';
 

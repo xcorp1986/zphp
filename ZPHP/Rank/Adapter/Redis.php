@@ -6,11 +6,15 @@
 
 
 namespace ZPHP\Rank\Adapter;
-use ZPHP\Manager,
-    ZPHP\Rank\IRank;
+
+use ZPHP\Manager;
+use ZPHP\Rank\IRank;
 
 class Redis implements IRank
 {
+    /**
+     * @var \Redis
+     */
     private $redis;
 
     public function __construct($config)
@@ -41,15 +45,22 @@ class Redis implements IRank
         if ($desc) {
             return $this->redis->zRevRange($rankType, $start, $start + $limit, $score);
         }
+
         return $this->redis->zRange($rankType, $start, $start + $limit, $score);
     }
 
     public function getRankByScore($rankType, $start, $end, $scores = true, $offset = 0, $count = 0)
     {
         if (!empty($offset) && !empty($count)) {
-            return $this->redis->zRangeByScore($rankType, $start, $end, array('withscores' => $scores, 'limit' => array($offset, $count)));
+            return $this->redis->zRangeByScore(
+                $rankType,
+                $start,
+                $end,
+                ['withscores' => $scores, 'limit' => [$offset, $count]]
+            );
         }
-        return $this->redis->zRangeByScore($rankType, $start, $end, array('withscores' => $scores));
+
+        return $this->redis->zRangeByScore($rankType, $start, $end, ['withscores' => $scores]);
     }
 
     public function getRankBetweenCount($rankType, $start, $end)
@@ -70,9 +81,10 @@ class Redis implements IRank
             $rank = $this->redis->zRank($rankType, $key);
         }
 
-        if(false === $rank) {
+        if (false === $rank) {
             return 0;
         }
+
         return ++$rank;
     }
 

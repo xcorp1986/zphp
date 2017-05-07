@@ -6,6 +6,7 @@
 
 
 namespace ZPHP\Serialize\Adapter;
+
 class Igbinary
 {
     public function serialize($data)

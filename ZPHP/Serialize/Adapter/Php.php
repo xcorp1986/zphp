@@ -6,6 +6,7 @@
 
 
 namespace ZPHP\Serialize\Adapter;
+
 class Php
 {
     public function serialize($data)

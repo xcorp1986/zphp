@@ -11,20 +11,24 @@ namespace ZPHP\Memcached;
 use ZPHP\Coroutine\Memcached\MemcachedAsynPool;
 use ZPHP\Coroutine\Memcached\MemcachedCoroutine;
 
-class Memcached{
+class Memcached
+{
     protected $pool;
-    function __construct(MemcachedAsynPool $memcachedAsynPool){
+
+    function __construct(MemcachedAsynPool $memcachedAsynPool)
+    {
         $this->pool = $memcachedAsynPool;
     }
 
-    function cache($key, $value='', $time_expire=3600){
+    function cache($key, $value = '', $time_expire = 3600)
+    {
         $memcachedCoroutine = new MemcachedCoroutine($this->pool);
-        if($value === ''){
-            $data = $memcachedCoroutine->command(['method'=>'get', 'param'=>[$key]]);
-        }else{
-            if(!is_null($value)) {
+        if ($value === '') {
+            $data = $memcachedCoroutine->command(['method' => 'get', 'param' => [$key]]);
+        } else {
+            if (!is_null($value)) {
                 $data = $memcachedCoroutine->command(['method' => 'set', 'param' => [$key, $value, $time_expire]]);
-            }else{
+            } else {
                 $data = $memcachedCoroutine->command(['method' => 'delete', 'param' => [$key]]);
             }
         }

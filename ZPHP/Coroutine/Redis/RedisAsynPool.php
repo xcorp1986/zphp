@@ -9,8 +9,6 @@
 
 namespace ZPHP\Coroutine\Redis;
 
-use ZPHP\Core\Config;
-use ZPHP\Core\Log;
 use ZPHP\Coroutine\Base\IOvector;
 use ZPHP\Coroutine\Pool\AsynPool;
 
@@ -18,9 +16,9 @@ class RedisAsynPool extends AsynPool implements IOvector
 {
     protected $_asynName = 'redis';
 
-    protected  $operator = [
-        'password'  =>  ['op'=>'auth','next'=>'select'],
-        'select'    =>  ['op'=>'select','next'=>''],
+    protected $operator = [
+        'password' => ['op' => 'auth', 'next' => 'select'],
+        'select'   => ['op' => 'select', 'next' => ''],
     ];
 
     /**
@@ -41,7 +39,7 @@ class RedisAsynPool extends AsynPool implements IOvector
      * @param $name
      * @param $arguments
      */
-    public function command(callable $callback=null, $data)
+    public function command(callable $callback = null, $data)
     {
         $this->checkAndExecute($data, $callback);
     }
@@ -66,22 +64,22 @@ class RedisAsynPool extends AsynPool implements IOvector
                         $data['result'] = $result;
                         $this->pushToPool($client);
                     }
-                }catch(\Exception $e){
+                } catch (\Exception $e) {
                     $data['result']['exception'] = $e->getMessage();
                 }
                 //给worker发消息
                 $this->distribute($data);
             };
-            try{
+            try {
                 $execute = $data['execute'];
                 $command = array_shift($execute);
 
                 $execute[] = $callback;
                 $res = call_user_func_array([$client, $command], $execute);
-                if(empty($res)){
+                if (empty($res)) {
                     throw new \Exception("redis客户端操作失败");
                 }
-            }catch(\Exception $e){
+            } catch (\Exception $e) {
                 $data['result']['exception'] = $e->getMessage();
                 $this->distribute($data);
             }
@@ -91,13 +89,17 @@ class RedisAsynPool extends AsynPool implements IOvector
     /**
      * @param $data
      */
-    public function reconnect($data){
+    public function reconnect($data)
+    {
         $nowConnectNo = $this->max_count;
 
         $client = new \swoole_redis;
-        $client->on('Close', function($client){
-            call_user_func([$this, 'clearPool']);
-        });
+        $client->on(
+            'Close',
+            function ($client) {
+                call_user_func([$this, 'clearPool']);
+            }
+        );
         if ($this->connect == null) {
             $this->connect = [$this->config['ip'], $this->config['port']];
         }
@@ -105,11 +107,11 @@ class RedisAsynPool extends AsynPool implements IOvector
             try {
                 if (!$result) {
                     $this->max_count--;
-                    throw new \Exception('[redis连接失败]' . $client->errMsg);
+                    throw new \Exception('[redis连接失败]'.$client->errMsg);
                 }
                 $this->initRedis($client, 'password', $nowConnectNo, $data);
             } catch (\Exception $e) {
-                if(!empty($data)){
+                if (!empty($data)) {
                     $data['result']['exception'] = $e->getMessage();
                     $this->distribute($data);
                 }
@@ -124,33 +126,37 @@ class RedisAsynPool extends AsynPool implements IOvector
      * @param $client redis客户端
      * @param string $now 当前步骤
      * @param int $nowConnectNo 当前客户端编号
-     * @param array $data['token']异常回调的索引
+     * @param array $data ['token']异常回调的索引
      */
-    public function initRedis($client, $now, $nowConnectNo,$data){
+    public function initRedis($client, $now, $nowConnectNo, $data)
+    {
 
-        if(!empty($this->operator[$now]['op'])){
-            if(!empty($this->config[$now])){
-            $operat = $this->operator[$now]['op'];
-            $client->$operat($this->config[$now], function ($client, $result)use($now, $nowConnectNo,$data) {
-                try {
-                    if (!$result) {
-                        $errMsg = $client->errMsg;
-                        $this->max_count--;
-                        unset($client);
-                        throw new \Exception('[redis连接失败]'.$errMsg);
+        if (!empty($this->operator[$now]['op'])) {
+            if (!empty($this->config[$now])) {
+                $operat = $this->operator[$now]['op'];
+                $client->$operat(
+                    $this->config[$now],
+                    function ($client, $result) use ($now, $nowConnectNo, $data) {
+                        try {
+                            if (!$result) {
+                                $errMsg = $client->errMsg;
+                                $this->max_count--;
+                                unset($client);
+                                throw new \Exception('[redis连接失败]'.$errMsg);
+                            }
+                            $this->initRedis($client, $this->operator[$now]['next'], $nowConnectNo, $data);
+                        } catch (\Exception $e) {
+                            if (!empty($data)) {
+                                $data['result']['exception'] = $e->getMessage();
+                                $this->distribute($data);
+                            }
+                        }
                     }
-                    $this->initRedis( $client, $this->operator[$now]['next'], $nowConnectNo, $data);
-                }catch(\Exception $e){
-                    if(!empty($data)) {
-                        $data['result']['exception'] = $e->getMessage();
-                        $this->distribute($data);
-                    }
-                }
-            });
-            }else{
-                $this->initRedis($client, $this->operator[$now]['next'],$nowConnectNo,$data);
+                );
+            } else {
+                $this->initRedis($client, $this->operator[$now]['next'], $nowConnectNo, $data);
             }
-        }else{
+        } else {
             $this->commands->enqueue($data);
             $this->pushToPool($client);
         }

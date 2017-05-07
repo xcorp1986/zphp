@@ -42,7 +42,7 @@ class WebSocketClient
      * @param int $port
      * @param string $path
      */
-    function __construct($host = '127.0.0.1', $port = 8080, $path = '/', $origin=null)
+    function __construct($host = '127.0.0.1', $port = 8080, $path = '/', $origin = null)
     {
         $this->host = $host;
         $this->port = $port;
@@ -65,9 +65,9 @@ class WebSocketClient
      * @throws ConnectionException
      * @return $this
      */
-    public function connect($pconnect=false)
+    public function connect($pconnect = false)
     {
-        if(!$this->socket) {
+        if (!$this->socket) {
             if ($pconnect) {
                 $this->socket = new \swoole_client(SWOOLE_TCP | SWOOLE_KEEP);
             } else {
@@ -79,6 +79,7 @@ class WebSocketClient
             $this->socket->connect($this->host, $this->port);
         }
         $this->socket->send($this->createHeader());
+
         return $this->recv();
     }
 
@@ -101,12 +102,14 @@ class WebSocketClient
         $data = $this->socket->recv();
         if ($data === false) {
             echo "Error: {$this->socket->errMsg}";
+
             return false;
         }
         $this->buffer .= $data;
         $recv_data = $this->parseData($this->buffer);
         if ($recv_data) {
             $this->buffer = '';
+
             return $recv_data;
         } else {
             return false;
@@ -131,12 +134,16 @@ class WebSocketClient
     private function parseData($response)
     {
         if (!$this->connected && isset($response['Sec-Websocket-Accept'])) {
-            if (base64_encode(pack('H*', sha1($this->key . '258EAFA5-E914-47DA-95CA-C5AB0DC85B11'))) === $response['Sec-Websocket-Accept']) {
+            if (base64_encode(
+                    pack('H*', sha1($this->key.'258EAFA5-E914-47DA-95CA-C5AB0DC85B11'))
+                ) === $response['Sec-Websocket-Accept']
+            ) {
                 $this->connected = true;
             } else {
                 throw new \Exception("error response key.");
             }
         }
+
         return $this->hybi10Decode($response);
     }
 
@@ -152,15 +159,15 @@ class WebSocketClient
             $host = 'localhost';
         }
 
-        return "GET {$this->path} HTTP/1.1" . "\r\n" .
-        "Origin: {$this->origin}" . "\r\n" .
-        "Host: {$host}:{$this->port}" . "\r\n" .
-        "Sec-WebSocket-Key: {$this->key}" . "\r\n" .
-        "User-Agent: PHPWebSocketClient/" . self::VERSION . "\r\n" .
-        "Upgrade: websocket" . "\r\n" .
-        "Connection: Upgrade" . "\r\n" .
-        "Sec-WebSocket-Protocol: wamp" . "\r\n" .
-        "Sec-WebSocket-Version: 13" . "\r\n" . "\r\n";
+        return "GET {$this->path} HTTP/1.1"."\r\n".
+            "Origin: {$this->origin}"."\r\n".
+            "Host: {$host}:{$this->port}"."\r\n".
+            "Sec-WebSocket-Key: {$this->key}"."\r\n".
+            "User-Agent: PHPWebSocketClient/".self::VERSION."\r\n".
+            "Upgrade: websocket"."\r\n".
+            "Connection: Upgrade"."\r\n".
+            "Sec-WebSocket-Protocol: wamp"."\r\n".
+            "Sec-WebSocket-Version: 13"."\r\n"."\r\n";
     }
 
     /**
@@ -171,23 +178,29 @@ class WebSocketClient
      */
     private function parseIncomingRaw($header)
     {
-        $retval = array();
+        $retval = [];
         $content = "";
         $fields = explode("\r\n", preg_replace('/\x0D\x0A[\x09\x20]+/', ' ', $header));
         foreach ($fields as $field) {
             if (preg_match('/([^:]+): (.+)/m', $field, $match)) {
-                $match[1] = preg_replace_callback('/(?<=^|[\x09\x20\x2D])./', function ($matches) {
-                    return strtoupper($matches[0]);
-                }, strtolower(trim($match[1])));
+                $match[1] = preg_replace_callback(
+                    '/(?<=^|[\x09\x20\x2D])./',
+                    function ($matches) {
+                        return strtoupper($matches[0]);
+                    },
+                    strtolower(trim($match[1]))
+                );
                 if (isset($retval[$match[1]])) {
-                    $retval[$match[1]] = array($retval[$match[1]], $match[2]);
+                    $retval[$match[1]] = [$retval[$match[1]], $match[2]];
                 } else {
                     $retval[$match[1]] = trim($match[2]);
                 }
-            } else if (preg_match('!HTTP/1\.\d (\d)* .!', $field)) {
-                $retval["status"] = $field;
             } else {
-                $content .= $field . "\r\n";
+                if (preg_match('!HTTP/1\.\d (\d)* .!', $field)) {
+                    $retval["status"] = $field;
+                } else {
+                    $content .= $field."\r\n";
+                }
             }
         }
         $retval['content'] = $content;
@@ -205,7 +218,7 @@ class WebSocketClient
     {
         $characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!"§$%&/()=[]{}';
 
-        $useChars = array();
+        $useChars = [];
         // select some random chars:
         for ($i = 0; $i < $length; $i++) {
             $useChars[] = $characters[mt_rand(0, strlen($characters) - 1)];
@@ -249,7 +262,7 @@ class WebSocketClient
      */
     private function hybi10Encode($payload, $type = 'text', $masked = true)
     {
-        $frameHead = array();
+        $frameHead = [];
         $frame = '';
         $payloadLength = strlen($payload);
 
@@ -286,6 +299,7 @@ class WebSocketClient
             // most significant bit MUST be 0 (close connection if frame too big)
             if ($frameHead[2] > 127) {
                 $this->close(1004);
+
                 return false;
             }
         } elseif ($payloadLength > 125) {
@@ -304,7 +318,7 @@ class WebSocketClient
 
         if ($masked === true) {
             // generate a random mask:
-            $mask = array();
+            $mask = [];
             for ($i = 0; $i < 4; $i++) {
                 $mask[$i] = chr(rand(0, 255));
             }

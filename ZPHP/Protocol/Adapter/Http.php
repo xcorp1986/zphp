@@ -6,11 +6,10 @@
 
 
 namespace ZPHP\Protocol\Adapter;
-use ZPHP\Core;
-use ZPHP\View;
+
+use ZPHP\Common\Route as ZRoute;
 use ZPHP\Core\Config;
 use ZPHP\Protocol\IProtocol;
-use ZPHP\Common\Route as ZRoute;
 use ZPHP\Protocol\Request;
 
 class Http implements IProtocol
@@ -34,18 +33,19 @@ class Http implements IProtocol
         }
 
         $pathInfo = Request::getPathInfo();
-        if(!empty($pathInfo) && '/' !== $pathInfo) {
+        if (!empty($pathInfo) && '/' !== $pathInfo) {
             $routeMap = ZRoute::match(Config::get('route', false), $pathInfo);
-            if(is_array($routeMap)) {
+            if (is_array($routeMap)) {
                 $ctrlName = \str_replace('/', '\\', $routeMap[0]);
                 $methodName = $routeMap[1];
-                if(!empty($routeMap[2]) && is_array($routeMap[2])) {
+                if (!empty($routeMap[2]) && is_array($routeMap[2])) {
                     //参数优先
                     $data = $data + $routeMap[2];
                 }
             }
         }
         Request::init($ctrlName, $methodName, $data, Config::getField('project', 'view_mode', 'Php'));
+
         return true;
     }
 }

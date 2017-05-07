@@ -6,6 +6,7 @@
 
 
 namespace ZPHP\Manager;
+
 class Redis
 {
     private static $instances;
@@ -19,7 +20,7 @@ class Redis
     {
         $name = $config['host'].PATH_SEPARATOR.$config['port'];
         $timeOut = 0;
-        if(isset($config['timeout'])) {
+        if (isset($config['timeout'])) {
             $timeOut = $config['timeout'];
         }
         $pconnect = !empty($config['pconnect']);
@@ -31,12 +32,13 @@ class Redis
                 $redis->connect($config['host'], $config['port'], $timeOut);
             }
             $redis->setOption(\Redis::OPT_SERIALIZER, \Redis::SERIALIZER_NONE);
-            if(!empty($config['auth'])) {
+            if (!empty($config['auth'])) {
                 $redis->auth($config['auth']);
             }
             self::$instances[$name] = $redis;
             self::$configs[$name] = $config;
         }
+
         return self::$instances[$name];
     }
 
@@ -45,7 +47,7 @@ class Redis
      * @param array $names
      * @return bool
      */
-    public static function closeInstance(array $names = array())
+    public static function closeInstance(array $names = [])
     {
         if (empty(self::$instances)) {
             return true;

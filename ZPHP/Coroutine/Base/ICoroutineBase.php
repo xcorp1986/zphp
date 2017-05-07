@@ -7,6 +7,8 @@
  */
 
 namespace ZPHP\Coroutine\Base;
-interface ICoroutineBase{
+
+interface ICoroutineBase
+{
     function sendCallback(callable $callback);
 }

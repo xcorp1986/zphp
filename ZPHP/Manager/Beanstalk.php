@@ -6,6 +6,7 @@
 
 
 namespace ZPHP\Manager;
+
 class Beanstalk
 {
     private static $instances;
@@ -20,6 +21,7 @@ class Beanstalk
             }
             self::$instances[$name] = $beanstalk;
         }
+
         return self::$instances[$name];
     }
 }

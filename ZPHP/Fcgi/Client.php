@@ -6,6 +6,7 @@
 
 
 namespace ZPHP\Fcgi;
+
 use ZPHP\ZPHP;
 
 class Client
@@ -76,15 +77,16 @@ class Client
     private function buildPacket($type, $content, $requestId = 1)
     {
         $clen = strlen($content);
+
         return chr(self::VERSION_1) /* version */
-        . chr($type) /* type */
-        . chr(($requestId >> 8) & 0xFF) /* requestIdB1 */
-        . chr($requestId & 0xFF) /* requestIdB0 */
-        . chr(($clen >> 8) & 0xFF) /* contentLengthB1 */
-        . chr($clen & 0xFF) /* contentLengthB0 */
-        . chr(0) /* paddingLength */
-        . chr(0) /* reserved */
-        . $content; /* content */
+            .chr($type) /* type */
+            .chr(($requestId >> 8) & 0xFF) /* requestIdB1 */
+            .chr($requestId & 0xFF) /* requestIdB0 */
+            .chr(($clen >> 8) & 0xFF) /* contentLengthB1 */
+            .chr($clen & 0xFF) /* contentLengthB0 */
+            .chr(0) /* paddingLength */
+            .chr(0) /* reserved */
+            .$content; /* content */
     }
 
     private function buildNvpair($name, $value)
@@ -94,19 +96,20 @@ class Client
         if ($nlen < 128) {
             $nvpair = chr($nlen);
         } else {
-            $nvpair = chr(($nlen >> 24) | 0x80) . chr(($nlen >> 16) & 0xFF) . chr(($nlen >> 8) & 0xFF) . chr($nlen & 0xFF);
+            $nvpair = chr(($nlen >> 24) | 0x80).chr(($nlen >> 16) & 0xFF).chr(($nlen >> 8) & 0xFF).chr($nlen & 0xFF);
         }
         if ($vlen < 128) {
             $nvpair .= chr($vlen);
         } else {
-            $nvpair .= chr(($vlen >> 24) | 0x80) . chr(($vlen >> 16) & 0xFF) . chr(($vlen >> 8) & 0xFF) . chr($vlen & 0xFF);
+            $nvpair .= chr(($vlen >> 24) | 0x80).chr(($vlen >> 16) & 0xFF).chr(($vlen >> 8) & 0xFF).chr($vlen & 0xFF);
         }
-        return $nvpair . $name . $value;
+
+        return $nvpair.$name.$value;
     }
 
     private function readNvpair($data, $length = null)
     {
-        $array = array();
+        $array = [];
 
         if ($length === null) {
             $length = strlen($data);
@@ -139,13 +142,14 @@ class Client
 
     private function decodePacketHeader($data)
     {
-        $ret = array();
+        $ret = [];
         $ret['version'] = ord($data{0});
         $ret['type'] = ord($data{1});
         $ret['requestId'] = (ord($data{2}) << 8) + ord($data{3});
         $ret['contentLength'] = (ord($data{4}) << 8) + ord($data{5});
         $ret['paddingLength'] = ord($data{6});
         $ret['reserved'] = ord($data{7});
+
         return $ret;
     }
 
@@ -165,6 +169,7 @@ class Client
                 $buf = fread($this->_sock, $resp['paddingLength']);
                 $resp['content'] .= $buf;
             }
+
             return $resp;
         } else {
             return false;
@@ -191,30 +196,34 @@ class Client
 
     public function request(array $url, $stdin = false)
     {
-        $params = array(
+        $params = [
             'GATEWAY_INTERFACE' => 'CGI/1.1',
-            'SERVER_PROTOCOL' => 'HTTP/1.1',
-            'REQUEST_METHOD' => 'GET',
-            'SCRIPT_FILENAME' => isset($url['SCRIPT_NAME']) ? $url['SCRIPT_NAME'] : ZPHP::getRootPath() . DS . 'webroot' . DS . 'main.php',
-            'SCRIPT_NAME' => isset($url['SCRIPT_NAME']) ? $url['SCRIPT_NAME'] : DS . 'main.php',
-            'DOCUMENT_URI' => isset($url['DOCUMENT_URI']) ? $url['DOCUMENT_URI'] : DS . 'main.php',
-            'HTTP_HOST' => isset($url['HTTP_HOST']) ? $url['HTTP_HOSTI'] : 'default',
-            'QUERY_STRING' => $url['query'],
-            'REQUEST_URI' => DS . $url['query'],
-            'SERVER_SOFTWARE' => 'zphp',
-            'REMOTE_ADDR' => '127.0.0.1',
-            'REMOTE_PORT' => '9985',
-            'SERVER_ADDR' => '127.0.0.1',
-            'SERVER_PORT' => '80',
-            'SERVER_NAME' => php_uname('n'),
-            'CONTENT_TYPE' => '',
-            'CONTENT_LENGTH' => 0,
-            'REQUEST_TIME' => time()
-        );
+            'SERVER_PROTOCOL'   => 'HTTP/1.1',
+            'REQUEST_METHOD'    => 'GET',
+            'SCRIPT_FILENAME'   => isset($url['SCRIPT_NAME']) ? $url['SCRIPT_NAME'] : ZPHP::getRootPath(
+                ).DS.'webroot'.DS.'main.php',
+            'SCRIPT_NAME'       => isset($url['SCRIPT_NAME']) ? $url['SCRIPT_NAME'] : DS.'main.php',
+            'DOCUMENT_URI'      => isset($url['DOCUMENT_URI']) ? $url['DOCUMENT_URI'] : DS.'main.php',
+            'HTTP_HOST'         => isset($url['HTTP_HOST']) ? $url['HTTP_HOSTI'] : 'default',
+            'QUERY_STRING'      => $url['query'],
+            'REQUEST_URI'       => DS.$url['query'],
+            'SERVER_SOFTWARE'   => 'zphp',
+            'REMOTE_ADDR'       => '127.0.0.1',
+            'REMOTE_PORT'       => '9985',
+            'SERVER_ADDR'       => '127.0.0.1',
+            'SERVER_PORT'       => '80',
+            'SERVER_NAME'       => php_uname('n'),
+            'CONTENT_TYPE'      => '',
+            'CONTENT_LENGTH'    => 0,
+            'REQUEST_TIME'      => time(),
+        ];
         $response = '';
         $this->connect();
 
-        $request = $this->buildPacket(self::BEGIN_REQUEST, chr(0) . chr(self::RESPONDER) . chr((int)$this->_keepAlive) . str_repeat(chr(0), 5));
+        $request = $this->buildPacket(
+            self::BEGIN_REQUEST,
+            chr(0).chr(self::RESPONDER).chr((int)$this->_keepAlive).str_repeat(chr(0), 5)
+        );
 
         $paramsRequest = '';
         foreach ($params as $key => $value) {
@@ -254,10 +263,11 @@ class Client
                 break;
             case self::REQUEST_COMPLETE:
                 list($header, $content) = explode("\r\n\r\n", $response, 2);
-                return array(
+
+                return [
                     'header' => $header,
-                    'content' => $content
-                );
+                    'content' => $content,
+                ];
         }
     }
 }

@@ -6,6 +6,7 @@
 
 
 namespace ZPHP\Manager;
+
 class Memcached
 {
     private static $instances;
@@ -25,6 +26,7 @@ class Memcached
             }
             self::$instances[$name] = $memcached;
         }
+
         return self::$instances[$name];
     }
 }

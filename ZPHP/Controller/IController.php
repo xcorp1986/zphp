@@ -10,13 +10,14 @@ namespace ZPHP\Controller;
 
 use ZPHP\Network\BaseResponse;
 
-abstract class IController{
+abstract class IController
+{
 
     public $module;
     public $controller;
     public $method;
     public $coroutineMethod;
-    public $coroutineParam=[];
+    public $coroutineParam = [];
 
 
     /**
@@ -24,26 +25,31 @@ abstract class IController{
      */
     protected $response;
 
-    protected function init(){
+    protected function init()
+    {
         return true;
     }
 
-    public function setApi(){
+    public function setApi()
+    {
         $this->response->setApi();
     }
 
-    public function checkApi(){
+    public function checkApi()
+    {
         return $this->response->checkApi();
     }
 
     /**
      * 异常处理
      */
-    public function onExceptionHandle($message){
+    public function onExceptionHandle($message)
+    {
 
     }
 
-    public function onSystemException($message){
+    public function onSystemException($message)
+    {
 
     }
 
@@ -52,8 +58,9 @@ abstract class IController{
      * @access protected
      * @return String
      */
-    protected function strNull($str){
-        return str_replace(array('NULL', 'null'), '""', $str);
+    protected function strNull($str)
+    {
+        return str_replace(['NULL', 'null'], '""', $str);
     }
 
 
@@ -61,11 +68,13 @@ abstract class IController{
      * 检测response是否结束
      * @return bool
      */
-    protected function checkResponse(){
+    protected function checkResponse()
+    {
         return $this->response->checkResponse();
     }
 
-    public function destroy(){
+    public function destroy()
+    {
         unset($this->coroutineMethod);
         unset($this->response);
     }

@@ -6,6 +6,7 @@
 
 
 namespace ZPHP\Cache\Adapter;
+
 use ZPHP\Cache\ICache;
 
 class XCache implements ICache
@@ -25,6 +26,7 @@ class XCache implements ICache
         if (\xcache_isset($key)) {
             return false;
         }
+
         return \xcache_set($key, $value, $timeOut);
     }
 

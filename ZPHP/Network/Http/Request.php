@@ -7,6 +7,7 @@
  */
 
 namespace ZPHP\Network\Http;
+
 use ZPHP\Common\Utils;
 use ZPHP\Core\Config;
 use ZPHP\Core\Rand;
@@ -17,7 +18,8 @@ use ZPHP\Session\Session;
  * Class Httpinput
  * @package ZPHP\Network\Http
  */
-class Request{
+class Request
+{
 
     public $post;
     public $header;
@@ -33,25 +35,31 @@ class Request{
 
     }
 
-    public function init($request){
+    public function init($request)
+    {
         //cookie
-        if(!empty($request->cookie))$this->cookie = $request->cookie;
+        if (!empty($request->cookie)) {
+            $this->cookie = $request->cookie;
+        }
         //获取session
-        if(!empty(Config::getField('session','enable'))) {
-            $sid = !empty($this->cookie[Session::$_sessionKey])?
-                $this->cookie[Session::$_sessionKey]:Rand::string(8);
+        if (!empty(Config::getField('session', 'enable'))) {
+            $sid = !empty($this->cookie[Session::$_sessionKey]) ?
+                $this->cookie[Session::$_sessionKey] : Rand::string(8);
             $this->cookie[Session::$_sessionKey] = $sid;
             $this->session = yield Session::get($sid);
         }
         $this->header = $request->header;
         //传入请求参数
 
-        $this->post = !empty($request->post)?$request->post:[];
-        $this->get = !empty($request->get)?$request->get:[];
+        $this->post = !empty($request->post) ? $request->post : [];
+        $this->get = !empty($request->get) ? $request->get : [];
         $methodType = $request->server['request_method'];
-        $this->request = $methodType=='GET'?array_merge($this->get, $this->post):array_merge($this->post, $this->get);
-        $this->files = !empty($request->files)?$request->files:[];
-        $this->server = !empty($request->server)?$request->server:[];
+        $this->request = $methodType == 'GET' ? array_merge($this->get, $this->post) : array_merge(
+            $this->post,
+            $this->get
+        );
+        $this->files = !empty($request->files) ? $request->files : [];
+        $this->server = !empty($request->server) ? $request->server : [];
     }
 
     /**
@@ -59,11 +67,15 @@ class Request{
      * @param bool $filter
      * @return string
      */
-    public function __call($method, $param){
-        if(empty($param)){
+    public function __call($method, $param)
+    {
+        if (empty($param)) {
             return $this->$method;
-        }else {
-            return isset($this->$method[$param[0]])?$this->_getHttpVal($this->$method[$param[0]], isset($param[1]) ? $param[1]:true ):null;
+        } else {
+            return isset($this->$method[$param[0]]) ? $this->_getHttpVal(
+                $this->$method[$param[0]],
+                isset($param[1]) ? $param[1] : true
+            ) : null;
         }
     }
 
@@ -74,13 +86,16 @@ class Request{
      * @param $filter
      * @return string
      */
-    protected function _getHttpVal($value, $filter){
-        if(!isset($value))
+    protected function _getHttpVal($value, $filter)
+    {
+        if (!isset($value)) {
             return null;
-        if($filter)
+        }
+        if ($filter) {
             return Utils::filter($value);
-        else
+        } else {
             return $value;
+        }
     }
 
 }

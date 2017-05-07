@@ -9,11 +9,12 @@
 
 namespace ZPHP\Coroutine\Mysql;
 
-use ZPHP\Core\Log;
 use ZPHP\Coroutine\Base\CoroutineBase;
 
-class MySqlCoroutine extends CoroutineBase{
+class MySqlCoroutine extends CoroutineBase
+{
     public $bind_id;
+
     /*
      * $this->data = $sql;
      */

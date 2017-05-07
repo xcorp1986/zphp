@@ -9,36 +9,51 @@
 
 namespace ZPHP\Redis;
 
-use ZPHP\Core\Log;
 use ZPHP\Coroutine\Redis\RedisCoroutine;
 
-class Redis{
-    private $_cmd = ['set', 'get', 'lpop', 'rpop', 'lpush', 'rpush','setex','decr',
-        'incr','hset','hget'];
+class Redis
+{
+    private $_cmd = [
+        'set',
+        'get',
+        'lpop',
+        'rpop',
+        'lpush',
+        'rpush',
+        'setex',
+        'decr',
+        'incr',
+        'hset',
+        'hget',
+    ];
     private $_pool;
-    function __construct($redisPool){
+
+    function __construct($redisPool)
+    {
         $this->_pool = $redisPool;
     }
 
     //redis操作
-    public function cache($key, $value='', $expire=0){
-        if($value===''){
-            $commandData = [ $key];
+    public function cache($key, $value = '', $expire = 0)
+    {
+        if ($value === '') {
+            $commandData = [$key];
             $command = 'get';
-        }else{
-            if(!empty($expire)){
+        } else {
+            if (!empty($expire)) {
                 $command = 'setex';
-                $commandData = [ $key, $expire,  $value ];
-            }else {
+                $commandData = [$key, $expire, $value];
+            } else {
                 $command = 'set';
-                $commandData = [ $key, $value];
+                $commandData = [$key, $value];
             }
         }
 
         $data = yield $this->__call($command, $commandData);
-        if($value!==''){
-            $data = !empty($data)?true:false;
+        if ($value !== '') {
+            $data = !empty($data) ? true : false;
         }
+
         return $data;
     }
 
@@ -47,62 +62,76 @@ class Redis{
      * @param $method
      * @param $param
      * @return bool
+     * @throws \Exception
      */
-    public function __call($method,$param){
-        if(phpversion()<'7.1' && !in_array($method, $this->_cmd)){
+    public function __call($method, $param)
+    {
+        if (phpversion() < '7.1' && !in_array($method, $this->_cmd)) {
             throw new \Exception("[".$method."]此操作暂时不支持");
         }
 
         $commandData = $param;
         array_unshift($commandData, $method);
         $redisCoroutine = new RedisCoroutine($this->_pool);
-        return $redisCoroutine->command(['execute'=>$commandData]);
+
+        return $redisCoroutine->command(['execute' => $commandData]);
     }
 
 
-    public function lpush($key, $value){
+    public function lpush($key, $value)
+    {
         return $this->__call('lpush', [$key, $value]);
     }
 
-    public function rpush($key, $value){
+    public function rpush($key, $value)
+    {
         return $this->__call('rpush', [$key, $value]);
     }
 
 
-    public function lpop($key){
+    public function lpop($key)
+    {
         return $this->__call('lpop', [$key]);
     }
 
-    public function rpop($key){
+    public function rpop($key)
+    {
         return $this->__call('rpop', [$key]);
     }
 
-    public function incr($key){
+    public function incr($key)
+    {
         return $this->__call('incr', [$key]);
     }
 
-    public function decr($key){
+    public function decr($key)
+    {
         return $this->__call('decr', [$key]);
     }
 
-    public function hset($key, $field, $value){
-        return $this->__call('hset', [$key, $field,$value]);
+    public function hset($key, $field, $value)
+    {
+        return $this->__call('hset', [$key, $field, $value]);
     }
 
-    public function hget($key, $field){
-        return $this->__call('hget', [$key,  $field]);
+    public function hget($key, $field)
+    {
+        return $this->__call('hget', [$key, $field]);
     }
 
-    public function set($key, $value){
-        return $this->__call('set', [$key,  $value]);
+    public function set($key, $value)
+    {
+        return $this->__call('set', [$key, $value]);
     }
 
-    public function get($key){
+    public function get($key)
+    {
         return $this->__call('get', [$key]);
     }
 
 
-    public function setex($key, $expire, $value){
+    public function setex($key, $expire, $value)
+    {
         return $this->__call('setex', [$key, $expire, $value]);
     }
 }

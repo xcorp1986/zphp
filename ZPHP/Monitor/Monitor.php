@@ -11,7 +11,8 @@ namespace ZPHP\Monitor;
 use ZPHP\Client\SwoolePid;
 use ZPHP\Core\Config;
 
-class Monitor {
+class Monitor
+{
 
     protected $monitorname;
     protected $filename;
@@ -23,78 +24,86 @@ class Monitor {
     }
 
 
-    public function outPutWebStatus(){
+    public function outPutWebStatus()
+    {
         $this->outputStatus($this->getNowStatus(), '<br/>');
     }
 
-    public function outPutNowStatus(){
+    public function outPutNowStatus()
+    {
         $this->outputStatus($this->getNowStatus());
     }
 
-    public function getNowStatus(){
+    public function getNowStatus()
+    {
         exec('ps axu|grep '.$this->monitorname, $output);
         $output = $this->packExeData($output);
         $pidDetail = SwoolePid::getPidList($this->filename);
         $pidList = [];
-        foreach($pidDetail as $key => $value){
-            foreach($value as $k => $v){
-                if($v['status']==1) {
+        foreach ($pidDetail as $key => $value) {
+            foreach ($value as $k => $v) {
+                if ($v['status'] == 1) {
                     $pidList[$k] = [
                         'type' => $key,
-                        'name'=>!empty($v['type'])?$key.'-'.$v['type']:$key
+                        'name' => !empty($v['type']) ? $key.'-'.$v['type'] : $key,
                     ];
                 }
             }
         }
         $pidDetail = [];
-        foreach($output as $key => $value){
-            if(!empty($pidList[$value[1]])){
+        foreach ($output as $key => $value) {
+            if (!empty($pidList[$value[1]])) {
                 $value[] = $pidList[$value[1]]['type'];
                 $value[] = $pidList[$value[1]]['name'];
                 $pidDetail[] = $value;
             }
         }
+
         return $pidDetail;
     }
 
 
-    protected function outputStatus($pidDetail, $explode="\n"){
+    protected function outputStatus($pidDetail, $explode = "\n")
+    {
         echo "Welcome ".Config::get('project_name')."!".$explode;
         $pidStatic = [];
-        foreach($pidDetail as $key => $value){
-            if(empty($pidStatic[$value[11]])){
+        foreach ($pidDetail as $key => $value) {
+            if (empty($pidStatic[$value[11]])) {
                 $pidStatic[$value[11]] = 1;
-            }else{
-                $pidStatic[$value[11]] ++;
+            } else {
+                $pidStatic[$value[11]]++;
             }
         }
-        foreach($pidStatic as $key => $value){
+        foreach ($pidStatic as $key => $value) {
             echo ucfirst($key)." Process Num:".$value.$explode;
         }
 
         echo "----------------PROCESS STATUS------------------".$explode;
         echo "Type           Pid   %CPU  %MEM   MEM     Start ".$explode;
-        foreach($pidDetail as $key => $value){
-            echo str_pad($value[12],15).str_pad($value[1],6).str_pad($value[2],6).
-                str_pad($value[3],7).str_pad(round($value[5]/1024,2)."M",8).$value[8].$explode;
+        foreach ($pidDetail as $key => $value) {
+            echo str_pad($value[12], 15).str_pad($value[1], 6).str_pad($value[2], 6).
+                str_pad($value[3], 7).str_pad(round($value[5] / 1024, 2)."M", 8).$value[8].$explode;
         }
 
     }
 
-    protected function packExeData($output){
+    protected function packExeData($output)
+    {
         $data = [];
-        foreach($output as $key => $value){
+        foreach ($output as $key => $value) {
             $data[] = $this->dealSingleData($value);
         }
+
         return $data;
     }
 
-    protected function dealSingleData($info){
+    protected function dealSingleData($info)
+    {
         $data = [];
         $i = 0;
         $num = 0;
 
-        while($num<=9) {
+        while ($num <= 9) {
             $start = '';
             while ($info[$i] != ' ') {
                 $start .= $info[$i];
@@ -107,6 +116,7 @@ class Monitor {
             $num++;
         }
         $data[] = substr($info, $i);
+
         return $data;
     }
 }

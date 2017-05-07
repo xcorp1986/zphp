@@ -8,7 +8,8 @@
 
 namespace ZPHP\Core;
 
-class Rand{
+class Rand
+{
     /**
      * 随机生成一个字符串
      * @param $length
@@ -20,18 +21,17 @@ class Rand{
     {
         $strings = 'ABCDEFGHIJKLOMNOPQRSTUVWXYZ';  //字符池
         $numbers = '0123456789';                    //数字池
-        if ($not_o0)
-        {
+        if ($not_o0) {
             $strings = str_replace('O', '', $strings);
             $numbers = str_replace('0', '', $numbers);
         }
-        $pattern = $strings . $number;
+        $pattern = $strings.$number;
         $max = strlen($pattern) - 1;
         $key = '';
-        for ($i = 0; $i < $length; $i++)
-        {
+        for ($i = 0; $i < $length; $i++) {
             $key .= $pattern{mt_rand(0, $max)};    //生成php随机数
         }
+
         return $key;
     }
 }

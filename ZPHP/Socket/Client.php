@@ -19,6 +19,7 @@ class Client
         } else {
             socket_connect($this->sockfp, $host, $port);
         }
+
         return;
     }
 
@@ -83,6 +84,7 @@ class Client
             $ret .= $tmp;
         }
         socket_set_block($this->sockfp);
+
         return $ret;
     }
 

@@ -9,9 +9,9 @@
 namespace ZPHP\Coroutine\Redis;
 
 use ZPHP\Coroutine\Base\CoroutineBase;
-use ZPHP\Coroutine\Base\CoroutineResult;
 
-class RedisCoroutine extends CoroutineBase{
+class RedisCoroutine extends CoroutineBase
+{
 
     /**
      * @var data => ['key'=>'','value'=>'','expire'=>''];

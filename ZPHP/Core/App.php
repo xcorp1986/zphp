@@ -12,18 +12,19 @@ namespace ZPHP\Core;
 use ZPHP\Common\Dir;
 use ZPHP\ZPHP;
 
-abstract class App{
-    static protected $compenontType = ['controller','service','model','middleware'];
+abstract class App
+{
+    protected static $compenontType = ['controller', 'service', 'model', 'middleware'];
     /**
-     * @var DI $_id;
+     * @var DI $_id ;
      */
-    static protected $_di;
+    protected static $_di;
 
 
     /**
      * 初始化App的容器服务
      */
-    static public function init($di)
+    public static function init($di)
     {
         self::$_di = $di;
         $allList = [];
@@ -34,11 +35,11 @@ abstract class App{
         try {
             //初始化加载
             foreach ($allList as $key => $value) {
-                foreach($value as $k => $v){
+                foreach ($value as $k => $v) {
                     self::$key($v);
                 }
             }
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             echo $e->getMessage()."\n";
         }
     }
@@ -49,11 +50,12 @@ abstract class App{
      * @param $type
      * @throws \Exception
      */
-    static public function initDefaultList($type, &$allList){
+    public static function initDefaultList($type, &$allList)
+    {
         $dir = ZPHP::getAppPath().DS.$type;
-        if(is_dir($dir)) {
+        if (is_dir($dir)) {
             $classList = Dir::getClass($dir, '/.php$/');
-            foreach($classList as $key => $value){
+            foreach ($classList as $key => $value) {
                 $value = self::getComponentName($value);
                 self::$_di->set($value, $type, $type.'\\'.$value);
                 $allList[$type][] = $value;
@@ -66,9 +68,10 @@ abstract class App{
      * @param $type
      * @throws \Exception
      */
-    static public function initConfigList($type, &$allList){
+    public static function initConfigList($type, &$allList)
+    {
         $modelConfig = Config::get($type);
-        if(!empty($modelConfig)) {
+        if (!empty($modelConfig)) {
             foreach ($modelConfig as $key => $value) {
                 $key = self::getComponentName($key);
                 self::$_di->set($key, $type, $value);
@@ -85,19 +88,21 @@ abstract class App{
      * @return mixed
      * @throws \Exception
      */
-    static public function __callStatic($name, $arguments)
+    public static function __callStatic($name, $arguments)
     {
         // TODO: Implement __call() method.
-        if(empty($arguments)){
+        if (empty($arguments)) {
             throw new \Exception("组件名不能为空");
         }
         $key = self::getComponentName($arguments[0]);
-        $argu = !empty($arguments[1])?$arguments[1]:[];
+        $argu = !empty($arguments[1]) ? $arguments[1] : [];
+
         return self::get($key, $name, $argu);
     }
 
 
-    static protected function getComponentName($name){
+    protected static function getComponentName($name)
+    {
 //        if(strpos($name, '\\')){
 //            $keyArray = explode('\\', $name);
 //            foreach($keyArray as $k=>$v){
@@ -115,13 +120,15 @@ abstract class App{
      * @param $name
      * @param $type
      */
-    static public function get($name, $type, $argu=[]){
+    public static function get($name, $type, $argu = [])
+    {
         $class = self::$_di->get($name, $type, $argu);
-        if(empty($class)){
-            if(DEBUG){
+        if (empty($class)) {
+            if (DEBUG) {
                 throw new \Exception($type.':'.$name.' not found!');
             }
         }
+
         return $class;
     }
 

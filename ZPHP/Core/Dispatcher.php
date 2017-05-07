@@ -8,7 +8,8 @@
 
 namespace ZPHP\Core;
 
-class Dispatcher{
+class Dispatcher
+{
 
     public function __construct()
     {
@@ -18,16 +19,14 @@ class Dispatcher{
     public function distribute(Request $requestDeal)
     {
         $mvc = $requestDeal->parse();
-        if(!empty($mvc['callback'])){
+        if (!empty($mvc['callback'])) {
             $httpResult = $requestDeal->callbackDistribute($mvc['callback'], $mvc['param']);
-        }else{
+        } else {
             $httpResult = $requestDeal->defaultDistribute($mvc['mvc']);
         }
+
         return $httpResult;
     }
-
-
-
 
 
 }

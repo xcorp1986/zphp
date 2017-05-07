@@ -8,12 +8,10 @@
 
 namespace ZPHP\Socket\Callback;
 
-use ZPHP\Socket\ICallback;
-use ZPHP\Core\Config as ZConfig;
-use ZPHP\Protocol;
-use ZPHP\Core;
-use \HttpParser;
+use HttpParser;
 use ZPHP\Conn\Factory as ZCache;
+use ZPHP\Core\Config as ZConfig;
+use ZPHP\Socket\ICallback;
 
 
 abstract class HttpServer implements ICallback
@@ -22,24 +20,24 @@ abstract class HttpServer implements ICallback
     private $cache;
     private $_route;
     public $serv;
-    private $mimes = array();
+    private $mimes = [];
 
     abstract public function onSend($fd, $data);
 
     public function onStart()
     {
-        echo 'server start, swoole version: ' . SWOOLE_VERSION . PHP_EOL;
+        echo 'server start, swoole version: '.SWOOLE_VERSION.PHP_EOL;
         $config = ZConfig::getField('cache', 'locale');
         $this->cache = ZCache::getInstance($config['adapter'], $config);
     }
 
     public function onConnect()
     {
-        
+
         $params = func_get_args();
         $fd = $params[1];
         //echo "{$fd} connected".PHP_EOL;
-        
+
     }
 
     /**
@@ -53,10 +51,10 @@ abstract class HttpServer implements ICallback
         $fd = $params[1];
         $parser = new HttpParser();
         $buffer = $this->cache->getBuff($fd);
-        $nparsed = (int) $this->cache->getBuff($fd, 'nparsed');
+        $nparsed = (int)$this->cache->getBuff($fd, 'nparsed');
         $buffer .= $_data;
         $nparsed = $parser->execute($buffer, $nparsed);
-        if($parser->hasError()) {
+        if ($parser->hasError()) {
             $serv->close($fd, $params[2]);
             $this->_clearBuff($fd);
         } elseif ($parser->isFinished()) {
@@ -64,7 +62,7 @@ abstract class HttpServer implements ICallback
             $this->onSend($fd, $this->_getData($parser->getEnvironment()));
         } else {
             $buffer = $this->cache->setBuff($fd, $buffer);
-            $nparsed = (int) $this->cache->setBuff($fd, $nparsed, 'nparsed');
+            $nparsed = (int)$this->cache->setBuff($fd, $nparsed, 'nparsed');
         }
     }
 
@@ -74,6 +72,7 @@ abstract class HttpServer implements ICallback
         switch ($data['REQUEST_METHOD']) {
             case 'POST':
                 parse_str($data['QUERY_STRING'].'&'.$data['REQUEST_BODY'], $param);
+
                 return $param;
                 break;
             case 'PUT':
@@ -81,11 +80,12 @@ abstract class HttpServer implements ICallback
             case 'DELETE':
                 break;
             default:   //GET
-                if(empty($data['QUERY_STRING'])) {
-                    return array();
+                if (empty($data['QUERY_STRING'])) {
+                    return [];
                 }
 
                 parse_str($data['QUERY_STRING'], $param);
+
                 return $param;
                 break;
         }
@@ -95,6 +95,7 @@ abstract class HttpServer implements ICallback
     {
         $this->cache->delBuff($fd, 'nparsed');
         $this->cache->delBuff($fd);
+
         return true;
     }
 
@@ -109,7 +110,7 @@ abstract class HttpServer implements ICallback
     public function onShutdown()
     {
         //echo "server shut dowm\n";
-        if($this->cache) {
+        if ($this->cache) {
             $this->cache->clear();
         }
     }
@@ -123,7 +124,7 @@ abstract class HttpServer implements ICallback
         $config = ZConfig::getField('cache', 'locale');
         $this->cache = ZCache::getInstance($config['adapter'], $config);
         $this->serv = $params[0];
-        if(is_file(__DIR__.DS.'Mimes.php')) {
+        if (is_file(__DIR__.DS.'Mimes.php')) {
             $mimes = include(__DIR__.DS.'Mimes.php');
             $this->mimes = array_flip($mimes);
         }
@@ -138,21 +139,21 @@ abstract class HttpServer implements ICallback
         echo "WorkerStop[$worker_id]|pid=" . posix_getpid() . ".\n";
         */
     }
-    
+
     public function onTask()
     {
-        
+
     }
-    
+
     public function onFinish()
     {
-        
+
     }
 
     public function getMime($filename)
     {
         $ext = strtolower(trim(substr(strrchr($filename, '.'), 1)));
-        if(isset($this->mimes[$ext])) {
+        if (isset($this->mimes[$ext])) {
             return $this->mimes[$ext];
         } else {
             return 'text/html';

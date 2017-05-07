@@ -23,6 +23,7 @@ class CoroutineResult
         if (self::$instance == null) {
             new CoroutineResult();
         }
+
         return self::$instance;
     }
 }

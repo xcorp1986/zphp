@@ -12,11 +12,12 @@ namespace ZPHP\Coroutine\Base;
 use ZPHP\Controller\IController;
 use ZPHP\Core\Log;
 
-class CoroutineTask{
+class CoroutineTask
+{
     protected $callbackData;
     protected $stack;
     /**
-     * @var \Generator $routine;
+     * @var \Generator $routine ;
      */
     protected $routine;
     protected $controller;
@@ -31,7 +32,8 @@ class CoroutineTask{
     /**
      * 克隆时深拷贝需要对stack克隆
      */
-    public function __clone(){
+    public function __clone()
+    {
         $this->stack = clone $this->stack;
     }
 
@@ -39,7 +41,8 @@ class CoroutineTask{
      * 协程调度器
      * @param \Generator $routine
      */
-    public function work(\Generator $routine){
+    public function work(\Generator $routine)
+    {
         while (true) {
 //            Log::write("this'i : ".$this->i);
             $this->i++;
@@ -58,14 +61,15 @@ class CoroutineTask{
                 }
 
                 //异步IO的父类
-                if(is_object($value) && is_subclass_of($value, 'ZPHP\Coroutine\Base\ICoroutineBase')){
+                if (is_object($value) && is_subclass_of($value, 'ZPHP\Coroutine\Base\ICoroutineBase')) {
                     $this->stack->push($routine);
                     $value->sendCallback([$this, 'callback']);
+
                     return;
                 }
 
 
-                if(is_null($value)) {
+                if (is_null($value)) {
                     try {
                         $return = $routine->getReturn();
                     } catch (\Exception $e) {
@@ -75,7 +79,7 @@ class CoroutineTask{
                         $this->callbackData = $return;
                     }
 //                    Log::write('return:'.json_encode($return));
-                }else {
+                } else {
                     $this->callbackData = $value;
                     $routine->send($this->callbackData);
                     $this->callbackData = null;
@@ -92,8 +96,8 @@ class CoroutineTask{
                     $routine = $this->routine;
                     $routine->next();
                     continue;
-                }else{
-                    return ;
+                } else {
+                    return;
                 }
             } catch (\Exception $e) {
                 $this->onExceptionHandle($e->getMessage());
@@ -102,6 +106,7 @@ class CoroutineTask{
             }
         }
     }
+
     /**
      * [callback description]
      * @param  [type]   $r        [description]
@@ -115,9 +120,9 @@ class CoroutineTask{
         /*
             继续work的函数实现 ，栈结构得到保存
          */
-        if(!empty($data['exception'])){
+        if (!empty($data['exception'])) {
             $this->onExceptionHandle($data['exception']);
-        }else {
+        } else {
             $gen = $this->stack->pop();
             $this->callbackData = $data;
             $gen->send($this->callbackData);
@@ -129,8 +134,9 @@ class CoroutineTask{
      * 系统级错误
      * @param $message
      */
-    protected function onExceptionHandle($message){
-        while(!$this->stack->isEmpty()) {
+    protected function onExceptionHandle($message)
+    {
+        while (!$this->stack->isEmpty()) {
             $routine = $this->stack->pop();
         }
         $action = 'onSystemException';
@@ -157,7 +163,8 @@ class CoroutineTask{
     }
 
 
-    public function setController(IController &$controller){
+    public function setController(IController &$controller)
+    {
         $this->controller = $controller;
     }
 

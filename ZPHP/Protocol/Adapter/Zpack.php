@@ -6,14 +6,16 @@
 
 
 namespace ZPHP\Protocol\Adapter;
-use ZPHP\Core\Config;
+
 use ZPHP\Common\MessagePacker;
+use ZPHP\Core\Config;
 use ZPHP\Protocol\IProtocol;
 use ZPHP\Protocol\Request;
 
 class Zpack implements IProtocol
 {
     private $_buffer = [];
+
     /**
      * client包格式： writeString(json_encode(array("a"='main/main',"m"=>'main', 'k1'=>'v1')));
      * server包格式：包总长+数据(json_encode)
@@ -26,13 +28,14 @@ class Zpack implements IProtocol
         $methodName = Config::getField('project', 'default_method_name', 'main');
         $fd = Request::getFd();
         if (!empty($this->_buffer[$fd])) {
-            $_data = $this->_buffer . $_data;
+            $_data = $this->_buffer.$_data;
         }
         $packData = new MessagePacker($_data);
         $packLen = $packData->readInt();
         $dataLen = \strlen($_data);
         if ($packLen > $dataLen) {
             $this->_buffer[$fd] = $_data;
+
             return false;
         } elseif ($packLen < $dataLen) {
             $this->_buffer[$fd] = \substr($_data, $packLen, $dataLen - $packLen);
@@ -53,6 +56,7 @@ class Zpack implements IProtocol
             $methodName = $params[$mpn];
         }
         Request::init($ctrlName, $methodName, $data, Config::getField('project', 'view_mode', 'Zpack'));
+
         return true;
     }
 }

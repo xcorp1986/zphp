@@ -13,59 +13,71 @@ use ZPHP\Core\Rand;
 use ZPHP\Network\BaseResponse;
 use ZPHP\Session\Session;
 
-class Response extends BaseResponse{
+class Response extends BaseResponse
+{
 
-    public $header = ['Connection'=>'keep-alive'];
+    public $header = ['Connection' => 'keep-alive'];
 
     public $cookie = [];
     public $session = [];
     public $code = 200;
     protected $swResponse;
 
-    protected function setTypeVal($type, $key, $value){
-        if(is_null($value))
+    protected function setTypeVal($type, $key, $value)
+    {
+        if (is_null($value)) {
             unset($this->$type[$key]);
-        else
+        } else {
             $this->$type[$key] = $value;
+        }
     }
 
-    public function setHeader($key, $value=null){
+    public function setHeader($key, $value = null)
+    {
         $this->setTypeVal('header', $key, $value);
     }
 
-    public function setCookie($key, $value=null){
+    public function setCookie($key, $value = null)
+    {
         $this->setTypeVal('cookie', $key, $value);
     }
 
-    public function setSession($key, $value){
+    public function setSession($key, $value)
+    {
         $this->setTypeVal('session', $key, $value);
     }
 
-    public function setHttpCode($code){
+    public function setHttpCode($code)
+    {
         $this->code = $code;
     }
 
-    protected function responseArrayVal($type, $cacheTime=0){
-        foreach($this->$type as $key => $value){
-            if(empty($cacheTime))
+    protected function responseArrayVal($type, $cacheTime = 0)
+    {
+        foreach ($this->$type as $key => $value) {
+            if (empty($cacheTime)) {
                 $this->swResponse->$type($key, $value);
-            else
-                $this->swResponse->$type($key, $value, time()+$cacheTime);
+            } else {
+                $this->swResponse->$type($key, $value, time() + $cacheTime);
+            }
         }
     }
 
 
-    protected function responseHeader(){
+    protected function responseHeader()
+    {
         $this->responseArrayVal('header');
     }
 
-    protected function responseSession(){
+    protected function responseSession()
+    {
 
-        if(!empty(Config::getField('session', 'enable'))){
+        if (!empty(Config::getField('session', 'enable'))) {
             $sid = null;
-            if(!empty($this->cookie[Session::$_sessionKey]))
+            if (!empty($this->cookie[Session::$_sessionKey])) {
                 $sid = $this->cookie[Session::$_sessionKey];
-            if(empty($sid)){
+            }
+            if (empty($sid)) {
                 $sid = Rand::string(8);
                 $this->cookie[Session::$_sessionKey] = $sid;
             }
@@ -74,17 +86,19 @@ class Response extends BaseResponse{
         $this->responseCookie();
     }
 
-    protected function responseCookie(){
-        if(!empty(Config::getField('cookie', 'enable'))){
+    protected function responseCookie()
+    {
+        if (!empty(Config::getField('cookie', 'enable'))) {
             $cacheExpire = Config::getField('cookie', 'cache_expire', 3600);
-            if(!empty($this->cookie)) {
+            if (!empty($this->cookie)) {
                 $this->responseArrayVal('cookie', $cacheExpire);
             }
         }
 
     }
 
-    public function finish($swResponse){
+    public function finish($swResponse)
+    {
         $this->swResponse = $swResponse;
         $this->responseHeader();
         yield $this->responseSession();

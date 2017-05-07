@@ -8,8 +8,6 @@
 namespace ZPHP\Session\Adapter;
 
 use ZPHP\Core\Config;
-use ZPHP\Manager;
-use ZPHP\ZPHP;
 
 class File
 {
@@ -39,13 +37,14 @@ class File
     {
         $path = $this->getPath();
         $files = \ZPHP\Common\Dir::tree($path);
-        foreach($files as $file) {
-            if(false !==strpos($file, 'sess_')) {
-                if(fileatime($file) < (time() - $this->gcTime)) {
+        foreach ($files as $file) {
+            if (false !== strpos($file, 'sess_')) {
+                if (fileatime($file) < (time() - $this->gcTime)) {
                     unlink($file);
                 }
             }
         }
+
         return true;
     }
 
@@ -57,7 +56,7 @@ class File
             $content = file_get_contents($this->filename);
             if (strlen($content) < 10) {
                 unlink($this->filename);
-            }else {
+            } else {
                 $time = floatval(substr($content, 0, 10));
                 if ($time < time()) {
                     unlink($this->filename);
@@ -66,14 +65,16 @@ class File
                 }
             }
         }
+
         return $session;
     }
 
     public function write($sid, $data)
     {
         $this->filename = $this->getFileName($sid);
-        $content = time() + $this->gcTime . $data;
+        $content = time() + $this->gcTime.$data;
         file_put_contents($this->filename, $content);
+
         return true;
     }
 
@@ -82,6 +83,7 @@ class File
         $this->filename = $this->getFileName($sid);
         if (is_file($this->filename)) {
             unlink($this->filename);
+
             return false;
         }
     }
@@ -89,7 +91,7 @@ class File
     private function getPath()
     {
         return isset($this->config['save_path']) ? $this->config['save_path'] :
-            Config::getField('session','path');
+            Config::getField('session', 'path');
     }
 
     private function getFileName($sid)
@@ -99,10 +101,10 @@ class File
             mkdir($path, 0777, true);
         }
 
-        if(!empty($this->config['callback']) && is_callable($this->config['callback'])) {
+        if (!empty($this->config['callback']) && is_callable($this->config['callback'])) {
             return call_user_func($this->config['callback'], $path, $sid);
         }
 
-        return $path . DS . $sid;
+        return $path.DS.$sid;
     }
 }

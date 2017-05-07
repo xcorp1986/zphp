@@ -8,7 +8,8 @@
 
 namespace ZPHP\Core;
 
-abstract class Container{
+abstract class Container
+{
     /**
      * @var DI
      */
@@ -17,10 +18,11 @@ abstract class Container{
     /**
      * 初始化ZPHP框架的容器服务
      */
-    static public function init($di)
+    public static function init($di)
     {
         self::$_di = $di;
     }
+
     /**
      * 获取容器组件
      * @param $name - service、model、controller
@@ -28,16 +30,16 @@ abstract class Container{
      * @return mixed
      * @throws \Exception
      */
-    static public function __callStatic($name, $arguments)
+    public static function __callStatic($name, $arguments)
     {
         // TODO: Implement __call() method.
-        if(empty($arguments)){
+        if (empty($arguments)) {
             throw new \Exception("组件名不能为空");
         }
-        $param = !empty($arguments[1])?$arguments[1]:[];
+        $param = !empty($arguments[1]) ? $arguments[1] : [];
+
         return self::make($arguments[0], $name, $param);
     }
-
 
 
     /**
@@ -45,14 +47,16 @@ abstract class Container{
      * @param $name
      * @param $type
      */
-    static protected function make($name, $type, $arguments=[]){
+    protected static function make($name, $type, $arguments = [])
+    {
         $class = self::$_di->get($name, "\\ZPHP\\".$type, $arguments);
-        if(empty($class)){
-            if(DEBUG){
+        if (empty($class)) {
+            if (DEBUG) {
                 throw new \Exception($type.':'.$name.' not found!');
             }
 
         }
+
         return $class;
     }
 }

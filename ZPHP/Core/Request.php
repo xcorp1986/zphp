@@ -7,15 +7,16 @@
  */
 
 namespace ZPHP\Core;
+
 use ZPHP\Controller\Controller;
 use ZPHP\Controller\IController;
-use ZPHP\Controller\WSController;
 use ZPHP\Coroutine\Base\CoroutineTask;
 
-class Request{
+class Request
+{
 
     /**
-     * @var CoroutineTask $coroutineTask;
+     * @var CoroutineTask $coroutineTask ;
      */
     protected $coroutineTask;
     protected $request;
@@ -37,7 +38,8 @@ class Request{
      * @param $request
      * @param $response
      */
-    public function init($request, $response){
+    public function init($request, $response)
+    {
         $this->request = $request;
         $this->response = $response;
     }
@@ -46,11 +48,13 @@ class Request{
      * 解析路由
      * @return array|null
      */
-    public function parse(){
-        return Route::parse($this->request->server['path_info'],
-            $this->request->server['request_method']);
+    public function parse()
+    {
+        return Route::parse(
+            $this->request->server['path_info'],
+            $this->request->server['request_method']
+        );
     }
-
 
 
     /**
@@ -64,16 +68,17 @@ class Request{
         $reflectFunc = new \ReflectionFunction($callback);
         $reflectParam = $reflectFunc->getParameters();
         $paramArray = [];
-        foreach($reflectParam as $key => $value){
-            if(!isset($param[$value->name])){
+        foreach ($reflectParam as $key => $value) {
+            if (!isset($param[$value->name])) {
                 break;
             }
             $paramArray[] = $param[$value->name];
         }
         $callbackResult = call_user_func_array($callback, $paramArray);
-        if($callbackResult instanceof \Generator){
-            $callbackResult = $this->generatDistribute($callback,$paramArray);
+        if ($callbackResult instanceof \Generator) {
+            $callbackResult = $this->generatDistribute($callback, $paramArray);
         }
+
         return $callbackResult;
     }
 
@@ -82,7 +87,8 @@ class Request{
      * @param IController $controller
      * @return mixed|string
      */
-    protected function executeGeneratorScheduler(IController $controller){
+    protected function executeGeneratorScheduler(IController $controller)
+    {
         $action = 'coroutineStart';
         $returnRes = 'NULL';
         $generator = call_user_func([$controller, $action]);
@@ -91,11 +97,13 @@ class Request{
             $task->setController($controller);
             $task->setRoutine($generator);
             $task->work($task->getRoutine());
-        }else{
+        } else {
             $returnRes = $generator;
         }
+
         return $returnRes;
     }
+
     /**
      * 默认mvc模式
      */
@@ -107,31 +115,34 @@ class Request{
 //        }
         try {
             $controller = clone App::controller($controllerClass);
-        }catch(\Exception $e) {
+        } catch (\Exception $e) {
             throw new \Exception('404|'.$e->getMessage());
         }
         $action = $mvc['action'];
-        if(!method_exists($controller, $action)){
+        if (!method_exists($controller, $action)) {
             throw new \Exception(404);
         }
         /**
          * @var Controller $controller
+         * @return mixed
          */
-        $controller->coroutineMethod = function()use($controller, $action){
+        $controller->coroutineMethod = function () use ($controller, $action) {
             return call_user_func([$controller, $action]);
         };
         $controller->module = $mvc['module'];
         $controller->controller = $mvc['controller'];
-        $controller->method= $action;
+        $controller->method = $action;
         $controller->swRequest = $this->request;
         $controller->swResponse = $this->response;
+
         return $this->executeGeneratorScheduler($controller);
     }
 
 
     /**
      * 执行路由闭包函数generator
-     * @param \Generator $generator
+     * @param \Closure $callback
+     * @param $paramArray
      * @return string
      */
     public function generatDistribute(\Closure $callback, $paramArray)
@@ -143,13 +154,14 @@ class Request{
          */
         $controller = clone $FController;
         $type = Config::getField('project', 'type');
-        if(strtolower($type)=='api'){
+        if (strtolower($type) == 'api') {
             $controller->setApi();
         }
         $controller->coroutineMethod = $callback;
         $controller->coroutineParam = $paramArray;
         $controller->swRequest = $this->request;
         $controller->swResponse = $this->response;
+
         return $this->executeGeneratorScheduler($controller);
     }
 

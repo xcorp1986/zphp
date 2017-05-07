@@ -7,11 +7,10 @@
 
 
 namespace ZPHP\Socket\Adapter;
-use ZPHP\Socket\IServer,
-    ZPHP\Core\Config as ZConfig,
-    ZPHP\Protocol;
-use React\EventLoop\Factory as eventLoop,
-    React\Socket\Server as server;
+
+use React\EventLoop\Factory as eventLoop;
+use React\Socket\Server as server;
+use ZPHP\Socket\IServer;
 
 class React implements IServer
 {
@@ -38,26 +37,38 @@ class React implements IServer
     {
         if (3 === $this->config['work_mode']) {
             for ($i = 0; $i < $this->config['worker_num']; $i++) {
-               $this->fork();
+                $this->fork();
             }
         }
 
         $client = $this->client;
         $client->onStart($this);
-        $this->serv->on('connection', function ($conn) use ($client) {
-            $client->onConnect($conn);
-            $conn->on('data', function ($datas) use ($conn, $client) {
-                $client->onReceive($conn, $datas);
-            });
+        $this->serv->on(
+            'connection',
+            function ($conn) use ($client) {
+                $client->onConnect($conn);
+                $conn->on(
+                    'data',
+                    function ($datas) use ($conn, $client) {
+                        $client->onReceive($conn, $datas);
+                    }
+                );
 
-            $conn->on('end', function () use ($conn, $client) {
-                $conn->end();
-            });
+                $conn->on(
+                    'end',
+                    function () use ($conn, $client) {
+                        $conn->end();
+                    }
+                );
 
-            $conn->on('close', function () use ($client, $conn) {
-                $client->onClose($conn);
-            });
-        });
+                $conn->on(
+                    'close',
+                    function () use ($client, $conn) {
+                        $client->onClose($conn);
+                    }
+                );
+            }
+        );
         $this->serv->listen($this->config['port'], $this->config['host']);
         $this->loop->run();
 
@@ -80,11 +91,11 @@ class React implements IServer
 
     public function check()
     {
-        if(empty($this->config['max_request'])) {
-            return ;
+        if (empty($this->config['max_request'])) {
+            return;
         }
-        foreach($this->pids as $pid=>$num) {
-            if($num >= $this->config['max_request']) {
+        foreach ($this->pids as $pid => $num) {
+            if ($num >= $this->config['max_request']) {
                 unset($this->pids[$pid]);
                 posix_kill($pid, SIGTERM);
                 $this->fork();

@@ -7,10 +7,9 @@
  */
 
 namespace ZPHP\Session;
-use ZPHP\Core\Config as ZConfig;
+
 use ZPHP\Core\Config;
-use ZPHP\Core\Log;
-use ZPHP\Core\Rand;
+use ZPHP\Core\Config as ZConfig;
 
 
 class Session
@@ -18,9 +17,11 @@ class Session
     public static $_sessionKey = 'SESSID';
 
 
-    public static function init(){
+    public static function init()
+    {
         self::$_sessionKey = Config::get('project_name').self::$_sessionKey;
     }
+
     /**
      * 获取session
      * @param $request
@@ -28,18 +29,20 @@ class Session
      * @return array|mixed
      * @throws \Exception
      */
-    public static function get($sid){
+    public static function get($sid)
+    {
         $session = [];
         $config = ZConfig::get('session');
-        if(!empty($sid)){
+        if (!empty($sid)) {
             $sid = $config['name'].$sid;
             $sessionType = $config['adapter'];
             $handler = Factory::getInstance($sessionType, $config);
             $data = yield $handler->read($sid);
-            if(!empty($data)) {
+            if (!empty($data)) {
                 $session = unserialize($data);
             }
         }
+
         return $session;
     }
 
@@ -50,12 +53,14 @@ class Session
      * @return mixed
      * @throws \Exception
      */
-    public static function set($session, $sid){
+    public static function set($session, $sid)
+    {
         $config = ZConfig::get('session');
         $sessionType = $config['adapter'];
         $handler = Factory::getInstance($sessionType, $config);
         $sid = $config['name'].$sid;
         $res = yield $handler->write($sid, serialize($session));
+
         return $res;
     }
 }

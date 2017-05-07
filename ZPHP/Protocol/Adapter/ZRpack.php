@@ -6,13 +6,13 @@
 
 
 namespace ZPHP\Protocol\Adapter;
-use ZPHP\Core\Config;
-use ZPHP\Common\MessagePacker;
-use ZPHP\Protocol\IProtocol;
+
 use ZPHP\Cache\Factory as ZCache;
+use ZPHP\Common\MessagePacker;
 use ZPHP\Common\Route as ZRoute;
+use ZPHP\Core\Config;
+use ZPHP\Protocol\IProtocol;
 use ZPHP\Protocol\Request;
-use ZPHP\View;
 
 class ZRpack implements IProtocol
 {
@@ -20,7 +20,7 @@ class ZRpack implements IProtocol
 
     /**
      * 包格式： 包总长+命令id+请求id+数据
-     * 
+     *
      * @param $_data
      * @return bool
      */
@@ -34,7 +34,7 @@ class ZRpack implements IProtocol
         $fd = Request::getFd();
         $cacheData = $this->_cache->get($fd);
         if (!empty($cacheData)) {
-            $_data = $cacheData . $_data;
+            $_data = $cacheData.$_data;
             $this->_cache->delete($fd);
         }
         if (empty($_data)) {
@@ -45,9 +45,10 @@ class ZRpack implements IProtocol
         $dataLen = \strlen($_data);
         if ($packLen > $dataLen) {
             $this->_cache->set($fd, $_data);
+
             return false;
         } elseif ($packLen < $dataLen) {
-            $this->_cache->set($fd,  \substr($_data, $packLen, $dataLen - $packLen));
+            $this->_cache->set($fd, \substr($_data, $packLen, $dataLen - $packLen));
         }
         $packData->resetOffset(4);
         $data = [];
@@ -56,19 +57,20 @@ class ZRpack implements IProtocol
         $data['_rid'] = $packData->readInt();
         $params = $packData->readString();
         $unpackData = \json_decode(gzdecode($params), true);
-        if(!empty($unpackData) && \is_array($unpackData)) {
+        if (!empty($unpackData) && \is_array($unpackData)) {
             $data += $unpackData;
         }
         $routeMap = ZRoute::match(Config::get('route', false), $pathinfo);
-        if(is_array($routeMap)) {
+        if (is_array($routeMap)) {
             $ctrlName = $routeMap[0];
             $methodName = $routeMap[1];
-            if(!empty($routeMap[2]) && is_array($routeMap[2])) {
+            if (!empty($routeMap[2]) && is_array($routeMap[2])) {
                 //参数优先
                 $data = $data + $routeMap[2];
             }
         }
         Request::init($ctrlName, $methodName, $data, Config::getField('project', 'view_mode', 'Zpack'));
+
         return true;
     }
 }

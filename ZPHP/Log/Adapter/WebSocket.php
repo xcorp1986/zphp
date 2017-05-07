@@ -8,10 +8,10 @@
 
 namespace ZPHP\Log\Adapter;
 
-use ZPHP\Log\Level;
-use ZPHP\Log\Base;
-use ZPHP\Core\Config as ZConfig;
 use ZPHP\Common\WebSocketClient;
+use ZPHP\Core\Config as ZConfig;
+use ZPHP\Log\Base;
+use ZPHP\Log\Level;
 
 
 class WebSocket extends Base
@@ -28,7 +28,7 @@ class WebSocket extends Base
             $this->_config = $config;
         }
     }
-    
+
     /**
      * @param $level
      * @param $message
@@ -37,17 +37,21 @@ class WebSocket extends Base
      * @throws \Exception
      * @desc {type} | {timeStamp} |{dateTime} | {$message}
      */
-    public function log($level, $message, array $context = array())
+    public function log($level, $message, array $context = [])
     {
         $logLevel = ZConfig::getField('project', 'log_level', Level::ALL);
         if (Level::$levels[$level] & $logLevel) {
-            $str = $level . self::SEPARATOR . $message. self::SEPARATOR. \implode(self::SEPARATOR, array_map('\ZPHP\Common\Log::myJson', $context));
-            if(!$this->_client) {
+            $str = $level.self::SEPARATOR.$message.self::SEPARATOR.\implode(
+                    self::SEPARATOR,
+                    array_map('\ZPHP\Common\Log::myJson', $context)
+                );
+            if (!$this->_client) {
                 $this->_client = new WebSocketClient($this->_config['host'], $this->_config['port']);
                 $this->_client->connect();
             }
             $this->_client->send($str);
         }
+
         return false;
     }
 
