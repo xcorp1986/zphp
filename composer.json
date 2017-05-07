@@ -1,21 +1,31 @@
 {
-    "name": "keaixiaou/zphp",
-    "description": "Asynchronous non-blocking framework based on ZPHP transformation",
-    "authors": [
-        {
-            "name": "huaerjie",
-            "email": "286252682@qq.com",
-            "homepage":"https://github.com/keaixiaou"
-        }
-    ],
-    "license": "MIT",
-    "require": {
-
-        "ext-swoole":">=1.8.0,<2.0.0"
-    },
-    "autoload":{
-        "psr-4":{
-            "ZPHP\\":"ZPHP"
-        }
+  "name": "xcorp1986/zphp",
+  "description": "Asynchronous non-blocking framework based on ZPHP transformation",
+  "authors": [
+    {
+      "name": "huaerjie",
+      "email": "286252682@qq.com",
+      "homepage": "https://github.com/keaixiaou"
     }
+  ],
+  "license": "MIT",
+  "require": {
+    "php": ">=7.1.0",
+    "ext-swoole": ">=1.8.0,<2.0.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "ZPHP\\": "ZPHP"
+    }
+  },
+  "suggest": {
+    "ext-pdo": "*",
+    "ext-memcache": "*",
+    "ext-memcached": "*",
+    "ext-redis": "*",
+    "ext-mongo": "*",
+    "ext-apc": "*",
+    "ext-xcache": "*",
+    "ext-yac": "*"
+  }
 }
